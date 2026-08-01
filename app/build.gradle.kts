@@ -10,6 +10,13 @@ android {
     namespace = "com.arman.dev.converterpro"
     compileSdk = 36
 
+   externalNativeBuild {
+    cmake {
+        path = file("src/main/cpp/CMakeLists.txt")
+        version = "3.22.1"
+    }
+}
+
     defaultConfig {
         applicationId = "com.arman.dev.converterpro"
         minSdk = 24
@@ -18,6 +25,19 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+externalNativeBuild {
+    cmake {
+        cppFlags += ""
+    }
+}
+
+ndk {
+    abiFilters += "arm64-v8a"
+}
+
+
+
     }
 
     buildTypes {
