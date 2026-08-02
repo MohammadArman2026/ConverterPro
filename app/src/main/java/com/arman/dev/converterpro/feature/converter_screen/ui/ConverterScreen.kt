@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,7 +70,7 @@ fun ConverterScreenRoute(
         mutableStateOf("")
     }
     ConverterScreenUi(
-        onConvertClick = {},
+        onConvertClick = viewModel::convert,
         onBackClick = onBackClick,
         list = uiState.mediaFile,
         onFileClick = {
@@ -90,6 +95,64 @@ fun ConverterScreenRoute(
         onChannelSelected = viewModel::onChannelSelected,
         onSampleRateSelected = viewModel::onSampleRateSelected ,
     )
+
+    if (uiState.conversionState !is ConversionState.Idle) {
+        ConversionProgressDialog(
+            state = uiState.conversionState,
+            onErrorDismissed = viewModel::dismissConversionError,
+        )
+    }
+}
+
+@Composable
+private fun ConversionProgressDialog(
+    state: ConversionState,
+    onErrorDismissed: () -> Unit,
+) {
+    val message = when (state) {
+        ConversionState.PreparingSpace -> "Preparing storage space"
+        ConversionState.NamingFile -> "Naming output file"
+        ConversionState.Converting -> "Converting audio"
+        is ConversionState.Completed -> "Conversion complete (${state.convertedFileCount} file(s))"
+        is ConversionState.Failed -> state.message
+        ConversionState.Idle -> return
+    }
+    val isTerminalState = state is ConversionState.Completed || state is ConversionState.Failed
+
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(AppSurface)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            if (!isTerminalState) {
+                CircularProgressIndicator(color = Color.White)
+            }
+            Text(
+                text = message,
+                color = Color.White,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center,
+            )
+            if (state is ConversionState.Failed) {
+                Button(
+                    onClick = onErrorDismissed,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                ) {
+                    Text("Close", color = Color.Black)
+                }
+            }
+        }
+    }
 }
 
 

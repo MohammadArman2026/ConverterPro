@@ -36,11 +36,45 @@ object FfmpegNative {
 
     fun demuxers(): List<String> = nativeDemuxers().asList().sorted()
 
+    /**
+     * Converts one audio stream using the supplied command-equivalent settings.
+     *
+     * @return an error message when conversion fails, or `null` on success.
+     */
+    fun convert(command: FfmpegConversionCommand): String? = nativeConvert(
+        inputPath = command.inputPath,
+        outputFileDescriptor = command.outputFileDescriptor,
+        containerFormat = command.containerFormat,
+        encoder = command.encoder,
+        bitrateKbps = command.bitrateKbps ?: 0,
+        sampleRate = command.sampleRate ?: 0,
+        channelCount = command.channelCount ?: 0,
+    )
+
     private external fun nativeEncoders(): Array<String>
     private external fun nativeDecoders(): Array<String>
     private external fun nativeMuxers(): Array<String>
     private external fun nativeDemuxers(): Array<String>
+    private external fun nativeConvert(
+        inputPath: String,
+        outputFileDescriptor: Int,
+        containerFormat: String,
+        encoder: String,
+        bitrateKbps: Int,
+        sampleRate: Int,
+        channelCount: Int,
+    ): String?
 }
+
+data class FfmpegConversionCommand(
+    val inputPath: String,
+    val outputFileDescriptor: Int,
+    val containerFormat: String,
+    val encoder: String,
+    val bitrateKbps: Int?,
+    val sampleRate: Int?,
+    val channelCount: Int?,
+)
 
 /** A snapshot of the codecs and container formats enabled in the bundled FFmpeg build. */
 data class FfmpegCapabilities(

@@ -3,9 +3,6 @@ package com.arman.dev.converterpro.feature.converter_screen.domain.model
 object Map {
 
     val extensionToEncoding = mapOf(
-        Extension.MP3 to listOf(
-            Encoder.LIB_MP3_LAME
-        ),
         Extension.WAV to listOf(
             Encoder.WAV
         ),
@@ -42,11 +39,6 @@ object Map {
 
 
     val encodingToBitrate = mapOf(
-        Encoder.LIB_MP3_LAME to listOf(
-            BitRate.AUTO ,
-            BitRate.CBR,
-            BitRate.VBR
-        ),
         Encoder.WAV to listOf(
             BitRate.AUTO
         ),
@@ -123,18 +115,6 @@ object Map {
     )
 
     val encodingToSampleRate = mapOf(
-        Encoder.LIB_MP3_LAME to listOf(
-            SampleRate.AUTO,
-            SampleRate.SR8000,
-            SampleRate.SR11025,
-            SampleRate.SR12000,
-            SampleRate.SR16000,
-            SampleRate.SR22050,
-            SampleRate.SR24000,
-            SampleRate.SR32000,
-            SampleRate.SR44100,
-            SampleRate.SR48000
-        ),
         Encoder.WAV to listOf(
             SampleRate.AUTO,
             SampleRate.SR0,

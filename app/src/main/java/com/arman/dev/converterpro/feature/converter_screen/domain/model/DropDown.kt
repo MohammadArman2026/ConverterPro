@@ -7,7 +7,6 @@ interface DropDown {
 enum class Extension(
     override val dropDown: String
 ) : DropDown {
-    MP3("mp3"),
     WAV("wav"),
     FLAC("flac"),
     AAC("aac"),
@@ -23,7 +22,6 @@ enum class Extension(
 enum class Encoder(
     override val dropDown: String
 ) : DropDown {
-    LIB_MP3_LAME("MP3LAME"),
     WAV("WAV"),
     FLAC("FLAC"),
     AAC("AAC"),

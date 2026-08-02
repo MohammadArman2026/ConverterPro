@@ -10,6 +10,7 @@ import com.arman.dev.converterpro.feature.converter_screen.domain.model.SampleRa
 
 data class ConverterUiState(
     val isLoading: Boolean = false ,
+    val conversionState: ConversionState = ConversionState.Idle,
     val error: String ? = null,
     val mediaFile: List<MediaFile> = emptyList() ,
     val selectedExtension: Extension = Extension.AAC,
