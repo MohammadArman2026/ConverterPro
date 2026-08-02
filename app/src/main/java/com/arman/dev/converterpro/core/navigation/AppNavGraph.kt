@@ -7,7 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.converter_screen.ui.ConverterScreenRoute
+import com.arman.dev.converterpro.feature.files.ui.FilesScreenRoute
 import com.arman.dev.converterpro.feature.home.ui.HomeScreenRoute
+import com.arman.dev.converterpro.feature.player.ui.PlayerScreenRoute
 
 private const val SELECTED_MEDIA_FILES_KEY = "selected_media_files"
 
@@ -25,12 +27,17 @@ fun AppNavGraph(
         composable(
             route = Routes.HOME
         ) {
-            HomeScreenRoute { mediaFiles ->
-                navController.currentBackStackEntry
-                    ?.savedStateHandle
-                    ?.set(SELECTED_MEDIA_FILES_KEY, ArrayList(mediaFiles))
-                navController.navigate(Routes.CONVERTER)
-            }
+            HomeScreenRoute(
+                onNextClick = { mediaFiles ->
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set(SELECTED_MEDIA_FILES_KEY, ArrayList(mediaFiles))
+                    navController.navigate(Routes.CONVERTER)
+                },
+                onConvertedFilesClick = {
+                    navController.navigateSingleTop(Routes.FILES)
+                }
+            )
         }
 
         composable(
@@ -45,6 +52,21 @@ fun AppNavGraph(
                 mediaFile = mediaFiles,
                 onBackClick = navController::popBackStack
             )
+        }
+
+        composable(
+            route = Routes.FILES
+        ) {
+            FilesScreenRoute(
+                onOpenPlayer = { navController.navigateSingleTop(Routes.PLAYER) },
+                onSettingClick = {}
+            )
+        }
+
+        composable(
+            route = Routes.PLAYER
+        ) {
+            PlayerScreenRoute(onBackClick = navController::popBackStack)
         }
     }
 }

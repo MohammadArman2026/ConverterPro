@@ -41,7 +41,10 @@ import com.arman.dev.converterpro.feature.home.ui.components.HomeScreenTopBar
 
 
 @Composable
-fun HomeScreenRoute(onNextClick: (List<MediaFile>) -> Unit){
+fun HomeScreenRoute(
+    onNextClick: (List<MediaFile>) -> Unit,
+    onConvertedFilesClick: () -> Unit
+){
 
     val homeViewModel: HomeViewModel = hiltViewModel()
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
@@ -79,7 +82,7 @@ fun HomeScreenRoute(onNextClick: (List<MediaFile>) -> Unit){
         onSettingClick = {
             when(it){
                 SettingOption.UPGRADE -> {}
-                SettingOption.CONVERTED_FILES -> {}
+                SettingOption.CONVERTED_FILES -> onConvertedFilesClick()
                 SettingOption.WRITE_A_FEEDBACK -> {}
                 SettingOption.SHARE_THIS_APP -> {}
                 SettingOption.MANAGE_SUBSCRIPTION -> {}

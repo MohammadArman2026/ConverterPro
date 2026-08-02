@@ -4,6 +4,8 @@ object Routes {
     const val SPLASH = "splash"
     const val HOME = "home"
     const val CONVERTER = "converter"
+    const val FILES = "files"
+    const val PLAYER = "player"
     const val AUDIO_CONVERTER = "audio_converter"
     const val VIDEO_CONVERTER = "video_converter"
     const val AUDIO_EXTRACTOR = "audio_extractor"
