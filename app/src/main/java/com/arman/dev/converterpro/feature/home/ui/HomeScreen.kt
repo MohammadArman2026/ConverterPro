@@ -25,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arman.dev.converterpro.core.designsystem.color.AppBackground
 import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.home.domain.model.SettingOption
 import com.arman.dev.converterpro.feature.home.ui.components.AudioFile
 import com.arman.dev.converterpro.feature.home.ui.components.HomeScreenBottomBar
@@ -41,7 +41,7 @@ import com.arman.dev.converterpro.feature.home.ui.components.HomeScreenTopBar
 
 
 @Composable
-fun HomeScreenRoute(onNextClick: () -> Unit){
+fun HomeScreenRoute(onNextClick: (List<MediaFile>) -> Unit){
 
     val homeViewModel: HomeViewModel = hiltViewModel()
     val uiState by homeViewModel.uiState.collectAsStateWithLifecycle()
@@ -86,7 +86,9 @@ fun HomeScreenRoute(onNextClick: () -> Unit){
                 SettingOption.CONTACT_US -> {}
             }
         },
-        onNextClick = onNextClick,
+        onNextClick = {
+        onNextClick(uiState.mediaList)
+        },
         onFilePick = {
             filePickerLauncher.launch(
                 arrayOf("audio/*", "video/*")

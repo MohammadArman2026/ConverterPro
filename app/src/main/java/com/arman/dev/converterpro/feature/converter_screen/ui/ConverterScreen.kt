@@ -66,7 +66,7 @@ fun ConverterScreenRoute(
     }
     ConverterScreenUi(
         onConvertClick = {},
-        onBackClick = {},
+        onBackClick = onBackClick,
         list = mediaFile,
         onFileClick = {
             name = it.name?.substringBeforeLast(".") ?: "no name"
