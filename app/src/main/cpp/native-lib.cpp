@@ -3,6 +3,8 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <cerrno>
+#include <cmath>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -61,6 +63,110 @@ std::string ffmpegError(const char *operation, int errorCode) {
     char message[AV_ERROR_MAX_STRING_SIZE] = {};
     av_strerror(errorCode, message, sizeof(message));
     return std::string(operation) + ": " + message;
+}
+
+constexpr int kOutputBufferSize = 32 * 1024;
+
+int lastErrnoAsAvError() {
+    return AVERROR(errno != 0 ? errno : EIO);
+}
+
+int writeToFileDescriptor(void *opaque, const uint8_t *buffer, int size) {
+    const int fileDescriptor = *static_cast<int *>(opaque);
+    int written = 0;
+    while (written < size) {
+        const ssize_t count = write(
+                fileDescriptor,
+                buffer + written,
+                static_cast<size_t>(size - written));
+        if (count < 0) {
+            if (errno == EINTR) continue;
+            return lastErrnoAsAvError();
+        }
+        if (count == 0) return AVERROR(EIO);
+        written += static_cast<int>(count);
+    }
+    return written;
+}
+
+int readFromFileDescriptor(void *opaque, uint8_t *buffer, int size) {
+    const int fileDescriptor = *static_cast<int *>(opaque);
+    while (true) {
+        const ssize_t count = read(fileDescriptor, buffer, static_cast<size_t>(size));
+        if (count < 0) {
+            if (errno == EINTR) continue;
+            return lastErrnoAsAvError();
+        }
+        return count == 0 ? AVERROR_EOF : static_cast<int>(count);
+    }
+}
+
+int64_t seekFileDescriptor(void *opaque, int64_t offset, int whence) {
+    const int fileDescriptor = *static_cast<int *>(opaque);
+    if ((whence & ~AVSEEK_FORCE) == AVSEEK_SIZE) {
+        const off_t current = lseek(fileDescriptor, 0, SEEK_CUR);
+        if (current < 0) return lastErrnoAsAvError();
+        const off_t size = lseek(fileDescriptor, 0, SEEK_END);
+        if (size < 0) return lastErrnoAsAvError();
+        if (lseek(fileDescriptor, current, SEEK_SET) < 0) return lastErrnoAsAvError();
+        return size;
+    }
+    const off_t position = lseek(
+            fileDescriptor, static_cast<off_t>(offset), whence & ~AVSEEK_FORCE);
+    return position < 0 ? lastErrnoAsAvError() : position;
+}
+
+/**
+ * Wraps the caller-supplied descriptor in a seekable [AVIOContext].
+ *
+ * Muxers such as `ipod`/`mp4` rewrite header atoms once the stream length is known, so they
+ * reject the non-seekable `pipe:` protocol outright. Container formats that only append data
+ * also benefit, because size fields no longer have to be left as placeholders.
+ */
+int openSeekableOutput(AVFormatContext *outputContext, int *fileDescriptor) {
+    auto *buffer = static_cast<unsigned char *>(av_malloc(kOutputBufferSize));
+    if (buffer == nullptr) return AVERROR(ENOMEM);
+
+    AVIOContext *io = avio_alloc_context(
+            buffer,
+            kOutputBufferSize,
+            1,
+            fileDescriptor,
+            readFromFileDescriptor,
+            writeToFileDescriptor,
+            seekFileDescriptor);
+    if (io == nullptr) {
+        av_freep(&buffer);
+        return AVERROR(ENOMEM);
+    }
+
+    outputContext->pb = io;
+    return 0;
+}
+
+void closeSeekableOutput(AVIOContext **io) {
+    if (*io == nullptr) return;
+    // libavformat may have swapped the buffer we handed over, so free the current one.
+    unsigned char *buffer = (*io)->buffer;
+    avio_context_free(io);
+    av_freep(&buffer);
+}
+
+/**
+ * Applies either constant bitrate or variable quality, never both.
+ *
+ * A negative [qualityScale] means the caller did not ask for variable bitrate. Otherwise FFmpeg
+ * needs [AV_CODEC_FLAG_QSCALE] plus `global_quality`; feeding a quality index into `bit_rate`
+ * instead asks for an absurdly low bitrate that most encoders refuse to open with.
+ */
+void configureRateControl(AVCodecContext *encoderContext, int bitrate, float qualityScale) {
+    if (qualityScale >= 0.0f) {
+        encoderContext->flags |= AV_CODEC_FLAG_QSCALE;
+        encoderContext->global_quality =
+                static_cast<int>(std::lround(qualityScale * FF_QP2LAMBDA));
+    } else if (bitrate > 0) {
+        encoderContext->bit_rate = bitrate;
+    }
 }
 
 int selectSampleRate(const AVCodec *codec, int requestedRate) {
@@ -264,10 +370,12 @@ std::string transcodeAudio(
         const char *containerFormat,
         const char *encoderName,
         int bitrate,
+        float qualityScale,
         int requestedSampleRate,
         int requestedChannelCount) {
     AVFormatContext *inputContext = nullptr;
     AVFormatContext *outputContext = nullptr;
+    AVIOContext *outputIo = nullptr;
     AVCodecContext *decoderContext = nullptr;
     AVCodecContext *encoderContext = nullptr;
     SwrContext *resampler = nullptr;
@@ -282,8 +390,6 @@ std::string transcodeAudio(
     int64_t nextPts = 0;
     int result = 0;
     std::string error;
-
-    const std::string outputPath = "pipe:" + std::to_string(outputFileDescriptor);
 
     result = avformat_open_input(&inputContext, inputPath, nullptr, nullptr);
     if (result < 0) {
@@ -342,7 +448,7 @@ std::string transcodeAudio(
         requestedChannelCount = 1;
     }
     encoderContext->time_base = AVRational{1, encoderContext->sample_rate};
-    encoderContext->bit_rate = bitrate > 0 ? bitrate : 0;
+    configureRateControl(encoderContext, bitrate, qualityScale);
     result = configureChannelLayout(
             encoderContext, requestedChannelCount, &decoderContext->ch_layout);
     if (result >= 0 && (outputContext->oformat->flags & AVFMT_GLOBALHEADER)) {
@@ -361,7 +467,8 @@ std::string transcodeAudio(
     }
     outputStream->time_base = encoderContext->time_base;
     result = avcodec_parameters_from_context(outputStream->codecpar, encoderContext);
-    if (result >= 0) result = avio_open(&outputContext->pb, outputPath.c_str(), AVIO_FLAG_WRITE);
+    if (result >= 0) result = openSeekableOutput(outputContext, &outputFileDescriptor);
+    if (result >= 0) outputIo = outputContext->pb;
     if (result >= 0) result = avformat_write_header(outputContext, nullptr);
     if (result < 0) {
         error = ffmpegError("Unable to write output header", result);
@@ -441,11 +548,10 @@ cleanup:
     avcodec_free_context(&decoderContext);
     avcodec_free_context(&encoderContext);
     if (outputContext != nullptr) {
-        if ((outputContext->oformat->flags & AVFMT_NOFILE) == 0 && outputContext->pb != nullptr) {
-            avio_closep(&outputContext->pb);
-        }
+        outputContext->pb = nullptr;
         avformat_free_context(outputContext);
     }
+    closeSeekableOutput(&outputIo);
     avformat_close_input(&inputContext);
     close(outputFileDescriptor);
     return error;
@@ -507,7 +613,8 @@ Java_com_arman_dev_converterpro_core_ffmpeg_FfmpegNative_nativeConvert(
         jint outputFileDescriptor,
         jstring containerFormat,
         jstring encoder,
-        jint bitrateKbps,
+        jint bitrateBitsPerSecond,
+        jfloat qualityScale,
         jint sampleRate,
         jint channelCount) {
     const char *input = env->GetStringUTFChars(inputPath, nullptr);
@@ -518,7 +625,8 @@ Java_com_arman_dev_converterpro_core_ffmpeg_FfmpegNative_nativeConvert(
             outputFileDescriptor,
             container,
             encoderName,
-            bitrateKbps,
+            bitrateBitsPerSecond,
+            qualityScale,
             sampleRate,
             channelCount);
     env->ReleaseStringUTFChars(inputPath, input);

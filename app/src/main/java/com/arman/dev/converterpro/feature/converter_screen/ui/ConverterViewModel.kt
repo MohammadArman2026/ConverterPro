@@ -22,9 +22,10 @@ import com.arman.dev.converterpro.feature.converter_screen.domain.model.SampleRa
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.channelCount
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.containerFormat
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.ffmpegEncoder
+import com.arman.dev.converterpro.feature.converter_screen.domain.model.bitsPerSecond
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.hertz
-import com.arman.dev.converterpro.feature.converter_screen.domain.model.kilobitsPerSecond
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.mimeType
+import com.arman.dev.converterpro.feature.converter_screen.domain.model.qualityScale
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -121,10 +122,7 @@ class ConverterViewModel @Inject constructor(
             )
         }
 
-        updateBitrate(
-            encoder = encoder,
-            bitrate = selectedBitrate
-        )
+        refreshBitrateValues()
     }
 
     /**
@@ -138,30 +136,32 @@ class ConverterViewModel @Inject constructor(
             it.copy(selectedBitRate = bitRate)
         }
 
-        updateBitrate(
-            encoder = _uiState.value.selectedEncoder,
-            bitrate = bitRate
-        )
+        refreshBitrateValues()
     }
 
-    private fun updateBitrate(
-        encoder: Encoder,
-        bitrate: BitRate
-    ) {
+    /**
+     * Recomputes the bitrate dropdown from the current encoder, rate control mode and sample rate.
+     *
+     * The sample rate participates because MPEG layer II switches bitrate tables at 32 kHz. An
+     * already valid selection is kept so that changing an unrelated dropdown does not silently
+     * reset the user's choice.
+     */
+    private fun refreshBitrateValues() {
 
-        val bitrateValues = when {
-            encoder == Encoder.AMR_NB &&
-                    bitrate == BitRate.CBR ->
-                Map.encodingToCBRValue[encoder].orEmpty()
+        val state = _uiState.value
 
-            else ->
-                Map.BitrateToBitrateValue[bitrate].orEmpty()
-        }
+        val bitrateValues = Map.bitrateValuesFor(
+            encoder = state.selectedEncoder,
+            bitRate = state.selectedBitRate,
+            sampleRate = state.selectedSampleRate
+        )
 
         _uiState.update {
             it.copy(
                 bitrateValues = bitrateValues,
-                selectedBitrateValue = bitrateValues.firstOrNull()
+                selectedBitrateValue = it.selectedBitrateValue
+                    .takeIf { selected -> selected in bitrateValues }
+                    ?: bitrateValues.firstOrNull()
                     ?: BitrateValue.AUTO
             )
         }
@@ -198,6 +198,8 @@ class ConverterViewModel @Inject constructor(
         _uiState.update {
             it.copy(selectedSampleRate = sampleRate)
         }
+
+        refreshBitrateValues()
     }
 
     /**
@@ -313,12 +315,16 @@ class ConverterViewModel @Inject constructor(
         outputFileDescriptor: Int,
     ): FfmpegConversionCommand {
         val state = _uiState.value
+        val isVariableBitrate = state.selectedBitRate == BitRate.VBR
         return FfmpegConversionCommand(
             inputPath = inputPath,
             outputFileDescriptor = outputFileDescriptor,
             containerFormat = state.selectedExtension.containerFormat,
             encoder = state.selectedEncoder.ffmpegEncoder,
-            bitrateKbps = state.selectedBitrateValue.kilobitsPerSecond,
+            bitrateBitsPerSecond = state.selectedBitrateValue.bitsPerSecond
+                .takeUnless { isVariableBitrate },
+            qualityScale = state.selectedBitrateValue.qualityScale
+                .takeIf { isVariableBitrate },
             sampleRate = state.selectedSampleRate.hertz,
             channelCount = state.selectedChannel.channelCount,
         )
@@ -339,24 +345,65 @@ class ConverterViewModel @Inject constructor(
             .orEmpty()
             .ifBlank { "audio" }
             .plus("_converted.${state.selectedExtension.dropDown}")
-        val values = ContentValues().apply {
-            put(MediaStore.Audio.Media.DISPLAY_NAME, outputName)
-            put(MediaStore.Audio.Media.MIME_TYPE, state.selectedExtension.mimeType)
-            put(
-                MediaStore.Audio.Media.RELATIVE_PATH,
-                "${Environment.DIRECTORY_MUSIC}/ConverterPro",
-            )
-            put(MediaStore.Audio.Media.IS_PENDING, 1)
-        }
-        return requireNotNull(
-            context.contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values),
-        ) { "Unable to reserve output storage." }
+
+        return outputTargets(state.selectedExtension)
+            .firstNotNullOfOrNull { target -> reserveOutputFile(outputName, target) }
+            ?: error("Unable to reserve output storage.")
     }
+
+    /**
+     * Where a converted file may be stored, in order of preference.
+     *
+     * MediaStore rejects any MIME type the platform cannot map back to a file extension, and niche
+     * containers such as WavPack are absent from that table on many builds. Such files resolve to
+     * media type "none", which MediaStore only permits under Download or Documents — never Music —
+     * so they cannot live alongside the recognised formats.
+     */
+    private fun outputTargets(extension: Extension): List<OutputTarget> = listOf(
+        OutputTarget(
+            collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            mimeType = extension.mimeType,
+            primaryDirectory = Environment.DIRECTORY_MUSIC,
+        ),
+        OutputTarget(
+            collection = MediaStore.Files.getContentUri(EXTERNAL_VOLUME),
+            mimeType = null,
+            primaryDirectory = Environment.DIRECTORY_DOWNLOADS,
+        ),
+        OutputTarget(
+            collection = MediaStore.Files.getContentUri(EXTERNAL_VOLUME),
+            mimeType = null,
+            primaryDirectory = Environment.DIRECTORY_DOCUMENTS,
+        ),
+    )
+
+    private fun reserveOutputFile(displayName: String, target: OutputTarget): Uri? {
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, displayName)
+            target.mimeType?.let { put(MediaStore.MediaColumns.MIME_TYPE, it) }
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                "${target.primaryDirectory}/$OUTPUT_DIRECTORY_NAME",
+            )
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        return try {
+            context.contentResolver.insert(target.collection, values)
+        } catch (error: IllegalArgumentException) {
+            null
+        }
+    }
+
+    private data class OutputTarget(
+        val collection: Uri,
+        val mimeType: String?,
+        val primaryDirectory: String,
+    )
 
     private fun markOutputReady(outputUri: Uri) {
         context.contentResolver.update(
             outputUri,
-            ContentValues().apply { put(MediaStore.Audio.Media.IS_PENDING, 0) },
+            ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) },
             null,
             null,
         )
@@ -373,6 +420,8 @@ class ConverterViewModel @Inject constructor(
 
     private companion object {
         const val COMPLETED_STATE_VISIBLE_MS = 1_000L
+        const val EXTERNAL_VOLUME = "external"
+        const val OUTPUT_DIRECTORY_NAME = "ConverterPro"
     }
 
 

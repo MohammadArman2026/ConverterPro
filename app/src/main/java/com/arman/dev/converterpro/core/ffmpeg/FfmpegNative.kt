@@ -46,7 +46,8 @@ object FfmpegNative {
         outputFileDescriptor = command.outputFileDescriptor,
         containerFormat = command.containerFormat,
         encoder = command.encoder,
-        bitrateKbps = command.bitrateKbps ?: 0,
+        bitrateBitsPerSecond = command.bitrateBitsPerSecond ?: 0,
+        qualityScale = command.qualityScale ?: UNSET_QUALITY_SCALE,
         sampleRate = command.sampleRate ?: 0,
         channelCount = command.channelCount ?: 0,
     )
@@ -60,18 +61,30 @@ object FfmpegNative {
         outputFileDescriptor: Int,
         containerFormat: String,
         encoder: String,
-        bitrateKbps: Int,
+        bitrateBitsPerSecond: Int,
+        qualityScale: Float,
         sampleRate: Int,
         channelCount: Int,
     ): String?
+
+    /** Mirrors the native sentinel that keeps the encoder in constant-bitrate mode. */
+    private const val UNSET_QUALITY_SCALE = -1f
 }
 
+/**
+ * A single conversion request.
+ *
+ * [bitrateBitsPerSecond] and [qualityScale] are mutually exclusive: the former drives constant
+ * bitrate encoding, the latter drives variable bitrate encoding. Leave both `null` to let the
+ * encoder pick its own defaults.
+ */
 data class FfmpegConversionCommand(
     val inputPath: String,
     val outputFileDescriptor: Int,
     val containerFormat: String,
     val encoder: String,
-    val bitrateKbps: Int?,
+    val bitrateBitsPerSecond: Int?,
+    val qualityScale: Float?,
     val sampleRate: Int?,
     val channelCount: Int?,
 )

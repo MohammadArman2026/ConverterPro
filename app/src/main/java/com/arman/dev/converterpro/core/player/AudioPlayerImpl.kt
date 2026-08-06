@@ -169,8 +169,8 @@ class AudioPlayerImpl @Inject constructor(
                 startProgressUpdates()
             }
             setOnCompletionListener { onTrackCompleted() }
-            setOnErrorListener { _, _, _ ->
-                failCurrentTrack(track.title)
+            setOnErrorListener { _, _, extra ->
+                failCurrentTrack(track.title, describeError(extra))
                 true
             }
         }
@@ -178,7 +178,26 @@ class AudioPlayerImpl @Inject constructor(
         runCatching {
             mediaPlayer?.setDataSource(context, track.uri)
             mediaPlayer?.prepareAsync()
-        }.onFailure { failCurrentTrack(track.title) }
+        }.onFailure { failCurrentTrack(track.title, "the file could not be opened") }
+    }
+
+    /**
+     * Turns [MediaPlayer]'s error code into something a user can act on.
+     *
+     * The distinction matters because the converter can produce formats the platform cannot decode
+     * at all, such as AC3, MP2 and WavPack. Reporting those as a missing decoder rather than a
+     * generic failure avoids sending anyone hunting for a broken file.
+     */
+    private fun describeError(extra: Int): String = when (extra) {
+        MediaPlayer.MEDIA_ERROR_UNSUPPORTED ->
+            "this device has no decoder for that format"
+        MediaPlayer.MEDIA_ERROR_MALFORMED ->
+            "the file is incomplete or malformed"
+        MediaPlayer.MEDIA_ERROR_IO ->
+            "the file could not be read"
+        MediaPlayer.MEDIA_ERROR_TIMED_OUT ->
+            "playback timed out"
+        else -> "the file could not be played"
     }
 
     private fun onTrackCompleted() {
@@ -201,13 +220,13 @@ class AudioPlayerImpl @Inject constructor(
         }
     }
 
-    private fun failCurrentTrack(title: String) {
+    private fun failCurrentTrack(title: String, reason: String) {
         releasePlayer()
         _state.update {
             it.copy(
                 isPlaying = false,
                 isBuffering = false,
-                error = "Unable to play $title"
+                error = "Unable to play $title: $reason."
             )
         }
     }

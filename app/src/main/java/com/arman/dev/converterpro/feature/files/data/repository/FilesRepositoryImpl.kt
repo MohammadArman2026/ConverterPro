@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * Reads back the files the converter wrote into `Music/ConverterPro` via MediaStore.
+ * Reads back the files the converter wrote into its `ConverterPro` output folder via MediaStore.
  */
 class FilesRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
@@ -56,29 +56,36 @@ class FilesRepositoryImpl @Inject constructor(
             }
         }
 
+    /**
+     * Reads the generic files collection rather than the audio collection.
+     *
+     * Containers whose MIME type the platform cannot resolve, such as WavPack, are written outside
+     * the audio collection, so querying only audio would hide them from this screen.
+     */
     private fun queryConvertedFiles(): List<ConvertedFile> {
+        val collection = MediaStore.Files.getContentUri(EXTERNAL_VOLUME)
         val projection = arrayOf(
-            MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.DISPLAY_NAME,
-            MediaStore.Audio.Media.SIZE,
-            MediaStore.Audio.Media.DURATION
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.DISPLAY_NAME,
+            MediaStore.MediaColumns.SIZE,
+            MediaStore.MediaColumns.DURATION
         )
 
         val (selection, selectionArgs) = buildFolderSelection()
 
         val cursor = context.contentResolver.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            collection,
             projection,
             selection,
             selectionArgs,
-            "${MediaStore.Audio.Media.DATE_ADDED} DESC"
+            "${MediaStore.MediaColumns.DATE_ADDED} DESC"
         ) ?: return emptyList()
 
         return cursor.use {
-            val idColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val nameColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
-            val sizeColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
-            val durationColumn = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+            val idColumn = it.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+            val nameColumn = it.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+            val sizeColumn = it.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
+            val durationColumn = it.getColumnIndexOrThrow(MediaStore.MediaColumns.DURATION)
 
             buildList {
                 while (it.moveToNext()) {
@@ -86,13 +93,10 @@ class FilesRepositoryImpl @Inject constructor(
                     add(
                         ConvertedFile(
                             id = id,
-                            uri = ContentUris.withAppendedId(
-                                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                                id
-                            ),
+                            uri = ContentUris.withAppendedId(collection, id),
                             name = it.getString(nameColumn) ?: "Unknown file",
                             sizeBytes = it.getLong(sizeColumn),
-                            durationMs = it.getLong(durationColumn),
+                            durationMs = if (it.isNull(durationColumn)) 0L else it.getLong(durationColumn),
                             bitrateKbps = null,
                             channels = null
                         )
@@ -102,17 +106,27 @@ class FilesRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Matches the output folder under any parent directory.
+     *
+     * Recognised audio formats are written to `Music/ConverterPro`, but containers whose MIME type
+     * the platform cannot resolve are only allowed under `Download` or `Documents`, so the parent
+     * is left as a wildcard. The surrounding separators keep the folder's own row out of the
+     * results, since that row is named after the folder and sits one level up.
+     */
     @Suppress("DEPRECATION")
     private fun buildFolderSelection(): Pair<String, Array<String>> =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            "${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?" to arrayOf("%$OUTPUT_FOLDER%")
+            "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND " +
+                    "${MediaStore.MediaColumns.IS_PENDING} = 0" to arrayOf("%/$OUTPUT_FOLDER/%")
         } else {
-            "${MediaStore.Audio.Media.DATA} LIKE ?" to arrayOf("%/$OUTPUT_FOLDER/%")
+            "${MediaStore.MediaColumns.DATA} LIKE ?" to arrayOf("%/$OUTPUT_FOLDER/%")
         }
 
     /**
      * MediaStore exposes no channel count and no bitrate below API 31, so both are read from the
-     * audio track itself and only estimated when the track omits them.
+     * audio track itself and only estimated when the track omits them. Duration is read here too,
+     * because rows outside the audio collection carry no duration.
      */
     private fun ConvertedFile.withTrackDetails(): ConvertedFile {
         val extractor = MediaExtractor()
@@ -122,6 +136,7 @@ class FilesRepositoryImpl @Inject constructor(
 
             var trackBitrate: Int? = null
             var trackChannels: Int? = null
+            var trackDurationMs = durationMs
 
             for (track in 0 until extractor.trackCount) {
                 val format = extractor.getTrackFormat(track)
@@ -134,12 +149,16 @@ class FilesRepositoryImpl @Inject constructor(
                 if (format.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
                     trackChannels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
                 }
+                if (trackDurationMs <= 0L && format.containsKey(MediaFormat.KEY_DURATION)) {
+                    trackDurationMs = format.getLong(MediaFormat.KEY_DURATION) / 1_000
+                }
                 break
             }
 
             copy(
+                durationMs = trackDurationMs,
                 bitrateKbps = trackBitrate
-                    ?: Utils.estimateBitrateKbps(sizeBytes, durationMs),
+                    ?: Utils.estimateBitrateKbps(sizeBytes, trackDurationMs),
                 channels = trackChannels
             )
         } catch (e: Exception) {
@@ -150,6 +169,7 @@ class FilesRepositoryImpl @Inject constructor(
     }
 
     private companion object {
-        const val OUTPUT_FOLDER = "Music/ConverterPro"
+        const val OUTPUT_FOLDER = "ConverterPro"
+        const val EXTERNAL_VOLUME = "external"
     }
 }
