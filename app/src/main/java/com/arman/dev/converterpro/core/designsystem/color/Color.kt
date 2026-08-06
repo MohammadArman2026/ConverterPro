@@ -2,17 +2,12 @@ package com.arman.dev.converterpro.core.designsystem.color
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+/** The single accent used for calls to action, active states and progress. */
+val Primary = Color(0xFFFFA500)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+/** Primary at reduced emphasis, for supporting strokes and inactive tracks. */
+val PrimaryMuted = Color(0x33FFA500)
 
-
-val PrimaryYellow = Color(0xFFFFD84D)
-val IconBackground = Color(0xFF06EA37)
 val dropdownColor = Color(0xFF1F1F1F)
 val AppBackground = Color(0xFF0E0E0E)
 val AppSurface = Color(0xFF1C1C1C)
@@ -25,8 +20,8 @@ val TextMuted = Color(0xFF6F6F6F)
 
 val AppCard = Color(0xFF141414)
 val ControlSurface = Color(0xFF1A1A1A)
-val IconContainer = Color(0xFF10331A)
+val IconContainer = Color(0xFF33240A)
 val DangerRed = Color(0xFFE5484D)
 val PlayerArtRing = Color(0xFF101010)
-val PlayerArtGradientStart = Color(0xFF2BD94F)
-val PlayerArtGradientEnd = Color(0xFF04A82A)
+val PlayerArtGradientStart = Color(0xFFFFC04D)
+val PlayerArtGradientEnd = Color(0xFFCC7A00)

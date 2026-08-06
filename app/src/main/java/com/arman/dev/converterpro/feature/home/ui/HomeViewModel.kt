@@ -68,4 +68,12 @@ class HomeViewModel @Inject constructor(
             )
         }
     }
+
+    /**
+     * Drops the picked files once they have been handed to the converter, so returning here starts
+     * from an empty list instead of the previous selection.
+     */
+    fun clearSelection() {
+        _uiState.update { it.copy(mediaList = emptyList(), error = null) }
+    }
 }

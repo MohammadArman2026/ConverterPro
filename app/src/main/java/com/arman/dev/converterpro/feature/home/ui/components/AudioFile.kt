@@ -37,7 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.model.MediaFile
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,7 +85,7 @@ fun AudioFile(
                             bottomEnd = 8.dp
                         )
                     )
-                    .background(IconBackground),
+                    .background(Primary),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -115,7 +115,7 @@ fun AudioFile(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(IconBackground)
+                    .background(Primary)
                     .clickable {
                         removeCallback(mediaFile.uri)
                     },

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,7 +21,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.feature.home.ui.components.ReusableText
 
 @Composable
@@ -53,7 +54,7 @@ fun ConverterScreenTopBar(
                     style = TextStyle(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp,
-                        color = IconBackground
+                        color = Primary
                     )
                 )
 
@@ -77,18 +78,19 @@ fun ConverterScreenTopBar(
 private fun ConvertButton(modifier: Modifier = Modifier,
                           onConvertClick: () -> Unit){
     Button(
-        modifier = Modifier
+        modifier = modifier
             .wrapContentSize(),
         colors = ButtonDefaults.buttonColors(
-            containerColor = IconBackground
+            containerColor = Primary
         ),
+        shape = MaterialTheme.shapes.medium,
         onClick = onConvertClick
     ) {
         ReusableText(
             text = "Convert",
-            modifier = Modifier.padding(horizontal = 24.dp , vertical = 8.dp),
+            modifier = Modifier,
             style = TextStyle(
-                fontSize = 12.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.Black
             )

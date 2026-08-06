@@ -23,7 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 
 @Composable
 fun HomeScreenBottomBar(
@@ -35,9 +35,9 @@ fun HomeScreenBottomBar(
         modifier = modifier
             .fillMaxWidth()
             .clip(
-                MaterialTheme.shapes.medium
+                MaterialTheme.shapes.large
             )
-            .border(2.dp, IconBackground, MaterialTheme.shapes.medium)
+            .border(2.dp, Primary, MaterialTheme.shapes.large)
     ) {
         Column(
             modifier = Modifier
@@ -51,7 +51,7 @@ fun HomeScreenBottomBar(
                 style = TextStyle(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = IconBackground
+                    color = Primary
                 )
             )
 
@@ -80,14 +80,14 @@ fun HomeScreenBottomBar(
 private fun FileSelectorItem(
     modifier: Modifier = Modifier,
     icon: Int = R.drawable.outline_drive_file_move_24,
-    iconBackground: Color = IconBackground,
+    iconBackground: Color = Primary,
     iconColor: Color = Color.Black,
     onClick: () -> Unit,
     text: String
 ) {
     Box(
         modifier = modifier
-            .clip(MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.large)
             .background(iconBackground)
             .clickable{
                 onClick()

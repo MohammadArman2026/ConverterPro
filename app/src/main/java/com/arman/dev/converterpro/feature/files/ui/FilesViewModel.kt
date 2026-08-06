@@ -6,6 +6,7 @@ import com.arman.dev.converterpro.core.player.AudioPlayer
 import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
 import com.arman.dev.converterpro.feature.files.domain.repository.FilesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,28 +23,37 @@ class FilesViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(FilesUiState())
     val uiState: StateFlow<FilesUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
         observePlayback()
     }
 
+    /**
+     * The repository emits the bare list first and the metadata-enriched list after, so the spinner
+     * is cleared on the first emission and the rows fill in without blocking the screen.
+     */
     fun loadFiles() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            filesRepository.loadConvertedFiles()
-                .onSuccess { files ->
-                    _uiState.update {
-                        it.copy(isLoading = false, files = files, error = null)
+            filesRepository.convertedFiles().collect { result ->
+                result
+                    .onSuccess { files ->
+                        _uiState.update {
+                            it.copy(isLoading = false, files = files, error = null)
+                        }
                     }
-                }
-                .onFailure { error ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = error.message ?: "Unable to load converted files."
-                        )
+                    .onFailure { error ->
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error = error.message ?: "Unable to load converted files."
+                            )
+                        }
                     }
-                }
+            }
         }
     }
 

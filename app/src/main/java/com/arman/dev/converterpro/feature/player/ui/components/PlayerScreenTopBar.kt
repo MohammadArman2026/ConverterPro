@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.AppSurface
 import com.arman.dev.converterpro.core.designsystem.color.ControlSurface
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 
 @Composable
 fun PlayerScreenTopBar(
@@ -57,7 +57,7 @@ fun PlayerScreenTopBar(
                 Icon(
                     painter = painterResource(R.drawable.outline_chevron_left_24),
                     contentDescription = "Back",
-                    tint = IconBackground,
+                    tint = Primary,
                     modifier = Modifier.size(24.dp)
                 )
             }

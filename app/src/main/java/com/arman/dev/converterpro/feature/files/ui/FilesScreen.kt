@@ -16,10 +16,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Snackbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,12 +43,12 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.AppBackground
 import com.arman.dev.converterpro.core.designsystem.color.AppOutline
-import com.arman.dev.converterpro.core.designsystem.color.AppSurface
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.IconContainer
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.designsystem.color.TextHint
-import com.arman.dev.converterpro.core.designsystem.color.TextMuted
 import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
 import com.arman.dev.converterpro.feature.files.ui.components.ConvertedFileItem
 import com.arman.dev.converterpro.feature.files.ui.components.FilesScreenTopBar
@@ -54,7 +58,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun FilesScreenRoute(
     onOpenPlayer: () -> Unit,
-    onSettingClick: () -> Unit
+    onBackClick: () -> Unit
 ) {
     val filesViewModel: FilesViewModel = hiltViewModel()
     val uiState by filesViewModel.uiState.collectAsStateWithLifecycle()
@@ -85,7 +89,7 @@ fun FilesScreenRoute(
 
     FilesScreenUi(
         uiState = uiState,
-        onSettingClick = onSettingClick,
+        onBackClick = onBackClick,
         onPlayClick = { file ->
             filesViewModel.onPlayClick(file)
             onOpenPlayer()
@@ -100,7 +104,7 @@ fun FilesScreenRoute(
 fun FilesScreenUi(
     modifier: Modifier = Modifier,
     uiState: FilesUiState,
-    onSettingClick: () -> Unit,
+    onBackClick: () -> Unit,
     onPlayClick: (ConvertedFile) -> Unit,
     onShareClick: (ConvertedFile) -> Unit,
     onDeleteClick: (ConvertedFile) -> Unit,
@@ -111,7 +115,10 @@ fun FilesScreenUi(
             .fillMaxSize()
             .background(AppBackground)
     ) {
-        FilesScreenTopBar(onSettingClick = onSettingClick)
+        FilesScreenTopBar(
+            fileCountLabel = uiState.fileCountLabel,
+            onBackClick = onBackClick
+        )
 
         Box(
             modifier = Modifier
@@ -121,11 +128,11 @@ fun FilesScreenUi(
             when {
                 uiState.isLoading -> LoadingState()
 
-                uiState.files.isEmpty() && uiState.error != null -> MessageState(
+                uiState.files.isEmpty() && uiState.error != null -> EmptyState(
                     text = uiState.error
                 )
 
-                uiState.isEmpty -> MessageState(
+                uiState.isEmpty -> EmptyState(
                     text = "No converted files yet.\nConverted audio shows up here."
                 )
 
@@ -143,25 +150,9 @@ fun FilesScreenUi(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(16.dp)
+                    .navigationBarsPadding()
             )
         }
-
-        HorizontalDivider(color = AppOutline)
-
-        ReusableText(
-            text = "Tap play to open the player",
-            style = TextStyle(
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                color = TextMuted,
-                textAlign = TextAlign.Center
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(AppSurface)
-                .padding(vertical = 14.dp)
-                .navigationBarsPadding()
-        )
     }
 }
 
@@ -175,24 +166,16 @@ private fun FileList(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item(key = HEADER_KEY) {
-            ReusableText(
-                text = uiState.headerLabel,
-                style = TextStyle(
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextHint,
-                    letterSpacing = 1.5.sp
-                ),
-                modifier = Modifier.padding(bottom = 2.dp)
-            )
-        }
-
-        items(uiState.files, key = { it.id }) { file ->
+        items(
+            items = uiState.files,
+            key = ConvertedFile::id,
+            contentType = { FILE_CONTENT_TYPE }
+        ) { file ->
             ConvertedFileItem(
+                modifier = Modifier.animateItem(),
                 file = file,
                 isPlaying = uiState.playingFileId == file.id,
                 onPlayClick = { onPlayClick(file) },
@@ -209,21 +192,37 @@ private fun LoadingState(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = IconBackground, strokeWidth = 2.dp)
+        CircularProgressIndicator(color = Primary, strokeWidth = 3.dp)
     }
 }
 
 @Composable
-private fun MessageState(
+private fun EmptyState(
     modifier: Modifier = Modifier,
     text: String
 ) {
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .padding(32.dp),
-        contentAlignment = Alignment.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(IconContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.outline_audiotrack_24),
+                contentDescription = null,
+                tint = Primary,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+
         ReusableText(
             text = text,
             style = TextStyle(
@@ -231,7 +230,8 @@ private fun MessageState(
                 fontWeight = FontWeight.Normal,
                 color = TextHint,
                 textAlign = TextAlign.Center
-            )
+            ),
+            modifier = Modifier.padding(top = 20.dp)
         )
     }
 }
@@ -252,14 +252,14 @@ private fun InlineSnackbar(
     Snackbar(
         modifier = modifier,
         containerColor = AppOutline,
-        contentColor = IconBackground
+        contentColor = Primary
     ) {
         ReusableText(
             text = message,
             style = TextStyle(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = IconBackground
+                color = Primary
             )
         )
     }
@@ -281,7 +281,7 @@ private fun Context.shareAudioFile(file: ConvertedFile) {
     startActivity(Intent.createChooser(shareIntent, "Share ${file.name}"))
 }
 
-private const val HEADER_KEY = "converted_files_header"
+private const val FILE_CONTENT_TYPE = "converted_file"
 private const val SNACKBAR_VISIBLE_MS = 2_500L
 
 @Preview(showBackground = true)
@@ -289,7 +289,7 @@ private const val SNACKBAR_VISIBLE_MS = 2_500L
 private fun FilesScreenPreview() {
     FilesScreenUi(
         uiState = FilesUiState(files = emptyList()),
-        onSettingClick = {},
+        onBackClick = {},
         onPlayClick = {},
         onShareClick = {},
         onDeleteClick = {},

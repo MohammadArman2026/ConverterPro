@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arman.dev.converterpro.core.designsystem.color.AppBackground
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.home.domain.model.SettingOption
 import com.arman.dev.converterpro.feature.home.ui.components.AudioFile
@@ -90,7 +90,8 @@ fun HomeScreenRoute(
             }
         },
         onNextClick = {
-        onNextClick(uiState.mediaList)
+            onNextClick(uiState.mediaList)
+            homeViewModel.clearSelection()
         },
         onFilePick = {
             filePickerLauncher.launch(
@@ -141,7 +142,7 @@ fun HomeScreenUi(
                     contentAlignment = Alignment.Center){
                     CircularProgressIndicator(
                         modifier = Modifier,
-                        color = IconBackground,
+                        color = Primary,
                         strokeWidth = 2.dp
                     )
                 }
@@ -180,7 +181,7 @@ fun HomeScreenUi(
         HomeScreenBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp)
+                .padding(horizontal = 32.dp, vertical = 12.dp)
                 .navigationBarsPadding(),
             onFileClick = onFilePick,
             onVideoClick = onVideoPick

@@ -59,7 +59,7 @@ fun AppNavGraph(
         ) {
             FilesScreenRoute(
                 onOpenPlayer = { navController.navigateSingleTop(Routes.PLAYER) },
-                onSettingClick = {}
+                onBackClick = navController::popBackStack
             )
         }
 

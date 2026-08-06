@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.ControlSurface
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.designsystem.color.TextMuted
 import com.arman.dev.converterpro.core.player.RepeatMode
 
@@ -47,7 +47,7 @@ fun PlayerControls(
         FlatControl(
             icon = R.drawable.outline_shuffle_24,
             contentDescription = "Shuffle",
-            tint = if (isShuffleEnabled) IconBackground else TextMuted,
+            tint = if (isShuffleEnabled) Primary else TextMuted,
             onClick = onShuffleClick
         )
 
@@ -77,7 +77,7 @@ fun PlayerControls(
                 else -> R.drawable.outline_repeat_24
             },
             contentDescription = "Repeat mode",
-            tint = if (repeatMode == RepeatMode.OFF) TextMuted else IconBackground,
+            tint = if (repeatMode == RepeatMode.OFF) TextMuted else Primary,
             onClick = onRepeatClick
         )
     }
@@ -99,8 +99,8 @@ private fun PlayPauseControl(
                 .size(86.dp)
                 .background(
                     Brush.radialGradient(
-                        0.34f to IconBackground.copy(alpha = if (enabled) 0.42f else 0.12f),
-                        0.58f to IconBackground.copy(alpha = if (enabled) 0.14f else 0.04f),
+                        0.34f to Primary.copy(alpha = if (enabled) 0.42f else 0.12f),
+                        0.58f to Primary.copy(alpha = if (enabled) 0.14f else 0.04f),
                         1f to Color.Transparent
                     )
                 )
@@ -110,7 +110,7 @@ private fun PlayPauseControl(
             modifier = Modifier
                 .size(62.dp)
                 .clip(CircleShape)
-                .background(if (enabled) IconBackground else ControlSurface)
+                .background(if (enabled) Primary else ControlSurface)
                 .clickable(enabled = enabled, onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
@@ -146,7 +146,7 @@ private fun CircleControl(
         Icon(
             painter = painterResource(icon),
             contentDescription = contentDescription,
-            tint = if (enabled) IconBackground else TextMuted,
+            tint = if (enabled) Primary else TextMuted,
             modifier = Modifier.size(26.dp)
         )
     }

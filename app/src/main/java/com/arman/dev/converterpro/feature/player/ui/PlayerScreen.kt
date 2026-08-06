@@ -27,7 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arman.dev.converterpro.core.designsystem.color.AppBackground
 import com.arman.dev.converterpro.core.designsystem.color.AppOutline
 import com.arman.dev.converterpro.core.designsystem.color.DangerRed
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.designsystem.color.TextHint
 import com.arman.dev.converterpro.feature.home.ui.components.ReusableText
 import com.arman.dev.converterpro.feature.player.ui.components.PlayerArtwork
@@ -99,7 +99,7 @@ fun PlayerScreenUi(
                     style = TextStyle(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = IconBackground,
+                        color = Primary,
                         textAlign = TextAlign.Center
                     )
                 )

@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.arman.dev.converterpro.R
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.designsystem.color.PlayerArtGradientEnd
 import com.arman.dev.converterpro.core.designsystem.color.PlayerArtGradientStart
 import com.arman.dev.converterpro.core.designsystem.color.PlayerArtRing
@@ -62,9 +62,9 @@ fun PlayerArtwork(
                 .alpha(glowAlpha)
                 .background(
                     Brush.radialGradient(
-                        0.30f to IconBackground.copy(alpha = 0.32f),
-                        0.46f to IconBackground.copy(alpha = 0.14f),
-                        0.62f to IconBackground.copy(alpha = 0.04f),
+                        0.30f to Primary.copy(alpha = 0.32f),
+                        0.46f to Primary.copy(alpha = 0.14f),
+                        0.62f to Primary.copy(alpha = 0.04f),
                         1f to Color.Transparent
                     )
                 )
@@ -75,14 +75,14 @@ fun PlayerArtwork(
                 .size(255.dp)
                 .clip(CircleShape)
                 .background(PlayerArtRing)
-                .border(1.dp, IconBackground.copy(alpha = 0.20f), CircleShape)
+                .border(1.dp, Primary.copy(alpha = 0.20f), CircleShape)
         )
 
         Box(
             modifier = Modifier
                 .size(205.dp)
                 .clip(CircleShape)
-                .border(1.dp, IconBackground.copy(alpha = 0.12f), CircleShape)
+                .border(1.dp, Primary.copy(alpha = 0.12f), CircleShape)
         )
 
         Box(

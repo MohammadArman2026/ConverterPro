@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.arman.dev.converterpro.core.designsystem.color.AppSurface
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.feature.home.ui.components.ReusableText
 
 @Composable
@@ -78,8 +78,8 @@ fun RenameFileDialog(
                     onValueChange = { fileName = it },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = IconBackground,
-                        unfocusedBorderColor = IconBackground,
+                        focusedBorderColor = Primary,
+                        unfocusedBorderColor = Primary,
                         cursorColor = Color.White,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,

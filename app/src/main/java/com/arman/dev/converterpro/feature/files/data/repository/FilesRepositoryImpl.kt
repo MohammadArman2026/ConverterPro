@@ -12,9 +12,14 @@ import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
 import com.arman.dev.converterpro.feature.files.domain.repository.FilesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -25,20 +30,21 @@ class FilesRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : FilesRepository {
 
-    override suspend fun loadConvertedFiles(): Result<List<ConvertedFile>> =
-        withContext(Dispatchers.IO) {
-            try {
-                val entries = queryConvertedFiles()
-                val files = coroutineScope {
-                    entries
-                        .map { entry -> async { entry.withTrackDetails() } }
-                        .awaitAll()
-                }
-                Result.success(files)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+    override fun convertedFiles(): Flow<Result<List<ConvertedFile>>> = flow {
+        val entries = queryConvertedFiles()
+        emit(Result.success(entries))
+
+        if (entries.isEmpty()) return@flow
+
+        val detailed = coroutineScope {
+            entries
+                .map { entry -> async(metadataDispatcher) { entry.withTrackDetails() } }
+                .awaitAll()
         }
+        emit(Result.success(detailed))
+    }.catch { error ->
+        emit(Result.failure(error))
+    }.flowOn(Dispatchers.IO)
 
     override suspend fun deleteConvertedFile(uri: Uri): Result<Unit> =
         withContext(Dispatchers.IO) {
@@ -168,8 +174,16 @@ class FilesRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Each [MediaExtractor] holds a native decoder, so metadata reads are capped rather than fanned
+     * out across the whole IO pool.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val metadataDispatcher = Dispatchers.IO.limitedParallelism(METADATA_PARALLELISM)
+
     private companion object {
         const val OUTPUT_FOLDER = "ConverterPro"
         const val EXTERNAL_VOLUME = "external"
+        const val METADATA_PARALLELISM = 4
     }
 }

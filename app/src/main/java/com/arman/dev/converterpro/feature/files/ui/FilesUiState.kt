@@ -11,9 +11,10 @@ data class FilesUiState(
 ) {
     val isEmpty: Boolean get() = !isLoading && error == null && files.isEmpty()
 
-    val headerLabel: String
-        get() = when (files.size) {
-            1 -> "1 CONVERTED FILE"
-            else -> "${files.size} CONVERTED FILES"
+    val fileCountLabel: String?
+        get() = when {
+            files.isEmpty() -> null
+            files.size == 1 -> "1 file"
+            else -> "${files.size} files"
         }
 }

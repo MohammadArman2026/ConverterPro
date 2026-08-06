@@ -32,7 +32,7 @@ import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.AppCard
 import com.arman.dev.converterpro.core.designsystem.color.ControlSurface
 import com.arman.dev.converterpro.core.designsystem.color.DangerRed
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.designsystem.color.IconContainer
 import com.arman.dev.converterpro.core.designsystem.color.TextHint
 import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
@@ -48,7 +48,7 @@ fun ConvertedFileItem(
     onDeleteClick: () -> Unit
 ) {
     // The play button always opens the player, so the row itself signals what is currently loaded.
-    val nameColor = if (isPlaying) IconBackground else Color.White
+    val nameColor = if (isPlaying) Primary else Color.White
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -68,7 +68,7 @@ fun ConvertedFileItem(
             Icon(
                 painter = painterResource(R.drawable.outline_audiotrack_24),
                 contentDescription = null,
-                tint = IconBackground,
+                tint = Primary,
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -101,7 +101,7 @@ fun ConvertedFileItem(
         CircularAction(
             icon = R.drawable.outline_play_arrow_24,
             contentDescription = "Play ${file.name}",
-            background = IconBackground,
+            background = Primary,
             iconTint = Color.Black,
             onClick = onPlayClick
         )
@@ -110,7 +110,7 @@ fun ConvertedFileItem(
             icon = R.drawable.outline_share_24,
             contentDescription = "Share ${file.name}",
             background = ControlSurface,
-            iconTint = IconBackground,
+            iconTint = Primary,
             onClick = onShareClick
         )
 

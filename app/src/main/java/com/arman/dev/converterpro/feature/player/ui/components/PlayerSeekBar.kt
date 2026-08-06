@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.core.designsystem.color.AppOutline
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.designsystem.color.TextHint
 import com.arman.dev.converterpro.feature.home.ui.components.ReusableText
 import kotlin.math.roundToInt
@@ -99,7 +99,7 @@ fun PlayerSeekBar(
                     .width(with(density) { (shownProgress * trackWidthPx).toDp() })
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(IconBackground)
+                    .background(Primary)
             )
 
             Box(
@@ -114,7 +114,7 @@ fun PlayerSeekBar(
                     }
                     .size(thumbSize)
                     .clip(CircleShape)
-                    .background(IconBackground)
+                    .background(Primary)
             )
         }
 

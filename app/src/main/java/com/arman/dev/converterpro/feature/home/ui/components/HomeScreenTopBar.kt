@@ -37,7 +37,7 @@ import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.AppBackground
 import com.arman.dev.converterpro.core.designsystem.color.AppOutline
 import com.arman.dev.converterpro.core.designsystem.color.AppSurface
-import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.feature.home.domain.model.SettingOption
 
 @Composable
@@ -81,7 +81,7 @@ fun HomeScreenTopBar(
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = IconBackground,
+                        color = Primary,
                     )
                 )
             }
@@ -98,7 +98,7 @@ fun HomeScreenTopBar(
                         onDismissRequest = { isMenuExpanded = false },
                         containerColor = AppOutline,
                         shape = MaterialTheme.shapes.medium,
-                        border = BorderStroke(1.dp , IconBackground),
+                        border = BorderStroke(1.dp , Primary),
                         tonalElevation = 0.dp,
                         shadowElevation = 0.dp
                     ) {
@@ -107,7 +107,7 @@ fun HomeScreenTopBar(
                                 text = {
                                     Text(
                                         text = option.title,
-                                        color = IconBackground,
+                                        color = Primary,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = 12.sp
                                     )
@@ -134,7 +134,7 @@ fun HomeScreenTopBar(
 fun ReusableIcon(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
-    backgroundColor: Color = IconBackground,
+    backgroundColor: Color = Primary,
     icon: Int = R.drawable.outline_settings_24,
     iconTint: Color = AppBackground,
     size: Dp = 32.dp,
@@ -166,14 +166,14 @@ fun NextButton(
     Box(
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
-            .background(IconBackground)
+            .background(Primary)
             .clickable {
                 onNextClick()
             },
         contentAlignment = Alignment.Center
     ) {
         ReusableText(
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 10.dp),
+            modifier = Modifier.padding(vertical = 6.dp, horizontal = 16.dp),
             text = "Next",
             style = TextStyle(
                 fontSize = 14.sp,
