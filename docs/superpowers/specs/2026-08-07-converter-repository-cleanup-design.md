@@ -2,11 +2,11 @@
 
 **Date:** 2026-08-07  
 **Status:** Approved for planning  
-**Scope:** Light architecture cleanup inside the existing single `:app` module
+**Scope:** App-wide `data` / `domain` / `presentation` package layout + converter data layer (single `:app` module)
 
 ## Goal
 
-Align the converter feature with the home/files pattern by extracting MediaStore and FFmpeg I/O into a repository, without multi-module splits, use cases, package renames, or Android-free domain models.
+Rename feature `ui` packages to `presentation`, and align the converter feature with home/files by adding the missing `data` layer (`ConverterRepository`), without multi-module splits, use cases, or Android-free domain models.
 
 ## Current state
 
@@ -17,23 +17,18 @@ Align the converter feature with the home/files pattern by extracting MediaStore
 
 ## Architecture
 
-Keep feature packages and the `ui` package name. Add only the missing repository pair under converter:
+Rename feature `ui` packages to `presentation`. Add the missing converter `data` repository pair:
 
 ```
-feature/converter_screen/
-  domain/
-    model/           # existing
-    repository/      # NEW ConverterRepository
-  data/
-    repository/      # NEW ConverterRepositoryImpl
-  ui/                # ViewModel, screens, components (unchanged package)
+feature/home|files|converter_screen/{data,domain,presentation}
+feature/player/presentation
 ```
 
-**Dependency rule:** `ui` → `domain` ← `data`. ViewModel depends on `ConverterRepository` only. `FfmpegNative` / MediaStore stay in the data impl (and existing `core/ffmpeg`).
+**Dependency rule:** `presentation` → `domain` ← `data`. ViewModel depends on `ConverterRepository` only. `FfmpegNative` / MediaStore stay in the data impl (and existing `core/ffmpeg`).
 
-Home, files, player, and `core` are out of scope except for shared types already used (`MediaFile`, `FfmpegConversionCommand`).
+Home and files keep existing repositories. Player stays presentation + `core/player`. Shared types: `MediaFile`, `FfmpegConversionCommand`.
 
-**`ConversionState`:** move from `ui` to `domain/model` (or keep a `typealias`/re-export in `ui` if needed for imports). The repository must not depend on the `ui` package. `ConverterUiState` continues to hold a `ConversionState` field.
+**`ConversionState`:** lives in `domain/model`. The repository must not depend on `presentation`. `ConverterUiState` continues to hold a `ConversionState` field.
 
 ## Components and data flow
 

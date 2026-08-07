@@ -6,10 +6,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.arman.dev.converterpro.core.model.MediaFile
-import com.arman.dev.converterpro.feature.converter_screen.ui.ConverterScreenRoute
-import com.arman.dev.converterpro.feature.files.ui.FilesScreenRoute
-import com.arman.dev.converterpro.feature.home.ui.HomeScreenRoute
-import com.arman.dev.converterpro.feature.player.ui.PlayerScreenRoute
+import com.arman.dev.converterpro.feature.converter_screen.presentation.ConverterScreenRoute
+import com.arman.dev.converterpro.feature.files.presentation.FilesScreenRoute
+import com.arman.dev.converterpro.feature.home.presentation.HomeScreenRoute
+import com.arman.dev.converterpro.feature.player.presentation.PlayerScreenRoute
 
 private const val SELECTED_MEDIA_FILES_KEY = "selected_media_files"
 
