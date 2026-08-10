@@ -24,9 +24,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
-import com.arman.dev.converterpro.core.designsystem.color.AppSurface
-import com.arman.dev.converterpro.core.designsystem.color.ControlSurface
-import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.core.designsystem.color.TopBarBackground
+import com.arman.dev.converterpro.feature.home.presentation.components.ReusableIcon
 
 @Composable
 fun PlayerScreenTopBar(
@@ -37,7 +36,7 @@ fun PlayerScreenTopBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(AppSurface)
+            .background(TopBarBackground)
     ) {
         Row(
             modifier = Modifier
@@ -46,21 +45,13 @@ fun PlayerScreenTopBar(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(CircleShape)
-                    .background(ControlSurface)
-                    .clickable(onClick = onBackClick),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.outline_chevron_left_24),
-                    contentDescription = "Back",
-                    tint = Primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            ReusableIcon(
+                icon = R.drawable.outline_chevron_left_24,
+                modifier = Modifier,
+                size = 40.dp,
+                iconSize = 24.dp,
+                onClick = onBackClick
+            )
 
             Text(
                 text = title,
@@ -78,7 +69,7 @@ fun PlayerScreenTopBar(
             )
 
             // Balances the back button so the title stays optically centered.
-            Box(modifier = Modifier.size(38.dp))
+            Box(modifier = Modifier.size(40.dp))
         }
     }
 }

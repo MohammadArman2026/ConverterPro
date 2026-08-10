@@ -1,5 +1,6 @@
 package com.arman.dev.converterpro.feature.converter_screen.presentation.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.AppSurface
+import com.arman.dev.converterpro.core.designsystem.color.DropDownBackground
+import com.arman.dev.converterpro.core.designsystem.color.DropDownStroke
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.DropDown
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.Encoder
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.Extension
@@ -60,10 +64,11 @@ fun <T: DropDown>CustomDropDown(
             },
             modifier = Modifier,
             colors = CardDefaults.cardColors(
-                containerColor = AppSurface,
+                containerColor = DropDownBackground,
                 contentColor = Color.White
             ),
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            border = BorderStroke(1.dp , DropDownStroke)
         ) {
             Row(
                 modifier = Modifier
@@ -100,7 +105,7 @@ fun <T: DropDown>CustomDropDown(
             },
             modifier = Modifier,
             shape = MaterialTheme.shapes.medium,
-            containerColor = AppSurface,
+            containerColor = PrimaryBackground,
         ) {
             dropDownList.forEach { dropDown ->
                 DropdownMenuItem(

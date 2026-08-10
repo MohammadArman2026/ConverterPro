@@ -1,6 +1,7 @@
 package com.arman.dev.converterpro.feature.converter_screen.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.arman.dev.converterpro.core.designsystem.color.DropDownBackground
+import com.arman.dev.converterpro.core.designsystem.color.DropDownStroke
 import com.arman.dev.converterpro.core.model.MediaFile
 
 @Composable
@@ -33,7 +36,8 @@ fun FileBox(
             .height(230.dp)
             .padding(horizontal = 10.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF1F1F1F))
+            .background(DropDownBackground)
+            .border(1.dp, DropDownStroke , RoundedCornerShape(16.dp))
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxWidth()
@@ -63,7 +67,7 @@ fun FileCard(
             .drawBehind {
                 val strokeWidth = 0.5.dp.toPx()
                 drawLine(
-                    color = Color.White.copy(alpha = 0.3f),
+                    color = DropDownStroke,
                     start = Offset(0f, size.height),
                     end = Offset(size.width, size.height),
                     strokeWidth = strokeWidth

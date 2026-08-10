@@ -8,8 +8,10 @@ import androidx.navigation.compose.composable
 import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.converter_screen.presentation.ConverterScreenRoute
 import com.arman.dev.converterpro.feature.files.presentation.FilesScreenRoute
+import com.arman.dev.converterpro.feature.home.domain.model.SettingOption
 import com.arman.dev.converterpro.feature.home.presentation.HomeScreenRoute
 import com.arman.dev.converterpro.feature.player.presentation.PlayerScreenRoute
+import com.arman.dev.converterpro.feature.settings.presentation.SettingsScreenRoute
 
 private const val SELECTED_MEDIA_FILES_KEY = "selected_media_files"
 
@@ -34,8 +36,12 @@ fun AppNavGraph(
                         ?.set(SELECTED_MEDIA_FILES_KEY, ArrayList(mediaFiles))
                     navController.navigate(Routes.CONVERTER)
                 },
-                onFileClick =  {},
-                onSettingClick = {},
+                onFileClick = {
+                    navController.navigateSingleTop(Routes.FILES)
+                },
+                onSettingClick = {
+                    navController.navigateSingleTop(Routes.SETTINGS)
+                },
             )
         }
 
@@ -66,6 +72,14 @@ fun AppNavGraph(
             route = Routes.PLAYER
         ) {
             PlayerScreenRoute(onBackClick = navController::popBackStack)
+        }
+
+        composable(
+            route = Routes.SETTINGS
+        ) {
+            SettingsScreenRoute(
+                onBackClick = navController::popBackStack,
+            )
         }
     }
 }

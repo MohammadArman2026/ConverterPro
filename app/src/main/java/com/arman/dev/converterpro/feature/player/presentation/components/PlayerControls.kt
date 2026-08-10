@@ -21,9 +21,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.arman.dev.converterpro.R
-import com.arman.dev.converterpro.core.designsystem.color.ControlSurface
-import com.arman.dev.converterpro.core.designsystem.color.Primary
-import com.arman.dev.converterpro.core.designsystem.color.TextMuted
+import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.IconStroke
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.core.player.RepeatMode
 
 @Composable
@@ -47,7 +47,7 @@ fun PlayerControls(
         FlatControl(
             icon = R.drawable.outline_shuffle_24,
             contentDescription = "Shuffle",
-            tint = if (isShuffleEnabled) Primary else TextMuted,
+            tint = if (isShuffleEnabled) PrimaryPlayerBackground else IconStroke,
             onClick = onShuffleClick
         )
 
@@ -77,7 +77,7 @@ fun PlayerControls(
                 else -> R.drawable.outline_repeat_24
             },
             contentDescription = "Repeat mode",
-            tint = if (repeatMode == RepeatMode.OFF) TextMuted else Primary,
+            tint = if (repeatMode == RepeatMode.OFF) IconStroke else PrimaryPlayerBackground,
             onClick = onRepeatClick
         )
     }
@@ -91,16 +91,16 @@ private fun PlayPauseControl(
     onClick: () -> Unit
 ) {
     Box(
-        modifier = modifier.size(86.dp),
+        modifier = modifier.size(88.dp),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
-                .size(86.dp)
+                .size(88.dp)
                 .background(
                     Brush.radialGradient(
-                        0.34f to Primary.copy(alpha = if (enabled) 0.42f else 0.12f),
-                        0.58f to Primary.copy(alpha = if (enabled) 0.14f else 0.04f),
+                        0.34f to PrimaryPlayerBackground.copy(alpha = if (enabled) 0.40f else 0.12f),
+                        0.58f to PrimaryPlayerBackground.copy(alpha = if (enabled) 0.14f else 0.04f),
                         1f to Color.Transparent
                     )
                 )
@@ -108,9 +108,9 @@ private fun PlayPauseControl(
 
         Box(
             modifier = Modifier
-                .size(62.dp)
+                .size(64.dp)
                 .clip(CircleShape)
-                .background(if (enabled) Primary else ControlSurface)
+                .background(if (enabled) PrimaryPlayerBackground else IconBackground)
                 .clickable(enabled = enabled, onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
@@ -119,7 +119,7 @@ private fun PlayPauseControl(
                     if (isPlaying) R.drawable.outline_pause_24 else R.drawable.outline_play_arrow_24
                 ),
                 contentDescription = if (isPlaying) "Pause" else "Play",
-                tint = if (enabled) Color.Black else TextMuted,
+                tint = if (enabled) Color.Black else IconStroke,
                 modifier = Modifier.size(30.dp)
             )
         }
@@ -139,14 +139,14 @@ private fun CircleControl(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(ControlSurface)
+            .background(IconBackground)
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(icon),
             contentDescription = contentDescription,
-            tint = if (enabled) Primary else TextMuted,
+            tint = if (enabled) PrimaryPlayerBackground else IconStroke,
             modifier = Modifier.size(26.dp)
         )
     }

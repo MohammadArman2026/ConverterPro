@@ -48,6 +48,8 @@ import com.arman.dev.converterpro.core.designsystem.color.AppBackground
 import com.arman.dev.converterpro.core.designsystem.color.AppOutline
 import com.arman.dev.converterpro.core.designsystem.color.IconContainer
 import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.core.designsystem.color.TextHint
 import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
 import com.arman.dev.converterpro.feature.files.presentation.components.ConvertedFileItem
@@ -113,7 +115,7 @@ fun FilesScreenUi(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(AppBackground)
+            .background(PrimaryBackground)
     ) {
         FilesScreenTopBar(
             fileCountLabel = uiState.fileCountLabel,
@@ -137,6 +139,7 @@ fun FilesScreenUi(
                 )
 
                 else -> FileList(
+                    modifier = Modifier.navigationBarsPadding(),
                     uiState = uiState,
                     onPlayClick = onPlayClick,
                     onShareClick = onShareClick,

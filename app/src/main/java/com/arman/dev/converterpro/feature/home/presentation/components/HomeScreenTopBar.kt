@@ -2,6 +2,7 @@ package com.arman.dev.converterpro.feature.home.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.IconBackground
 import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.core.designsystem.color.TopBarBackground
 
 
@@ -37,33 +40,35 @@ fun HomeTopBar(
     topBarColor : Color = TopBarBackground,
     isNextButtonVisible: Boolean = false,
     onClick: () -> Unit
-){
-    Row (
+) {
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(100.dp)
-            .background(topBarColor),
-        verticalAlignment = Alignment.CenterVertically
-    ){
-        Spacer(Modifier.width(8.dp))
-        ReusableText(
-            text = "Converter Pro",
-            style = TextStyle(
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
+            .background(topBarColor)
+    ) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp , vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            ReusableText(
+                text = "Converter Pro",
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
             )
-        )
-        Spacer(Modifier.weight(1f))
-        if (isNextButtonVisible){
-            ReusableIcon(
-                modifier = Modifier,
-                onClick = onClick,
-                icon = R.drawable.baseline_chevron_right_24
-            )
+            if (isNextButtonVisible) {
+                NextButton(
+                    onNextClick = onClick
+                )
+            }
         }
-        Spacer(Modifier.width(8.dp))
     }
 }
 
@@ -103,7 +108,7 @@ fun NextButton(
     Box(
         modifier = Modifier
             .clip(MaterialTheme.shapes.small)
-            .background(Primary)
+            .background(PrimaryPlayerBackground)
             .clickable {
                 onNextClick()
             },

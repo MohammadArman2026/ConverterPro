@@ -1,6 +1,7 @@
 package com.arman.dev.converterpro.feature.files.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,8 +33,11 @@ import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.AppCard
 import com.arman.dev.converterpro.core.designsystem.color.ControlSurface
 import com.arman.dev.converterpro.core.designsystem.color.DangerRed
+import com.arman.dev.converterpro.core.designsystem.color.DropDownBackground
+import com.arman.dev.converterpro.core.designsystem.color.DropDownStroke
 import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.designsystem.color.IconContainer
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.core.designsystem.color.TextHint
 import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
 import com.arman.dev.converterpro.feature.home.presentation.components.ReusableText
@@ -52,8 +56,9 @@ fun ConvertedFileItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .background(AppCard)
+            .clip(MaterialTheme.shapes.medium)
+            .background(DropDownBackground)
+            .border(1.dp, DropDownStroke, MaterialTheme.shapes.medium)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -62,13 +67,13 @@ fun ConvertedFileItem(
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(IconContainer),
+                .background(PrimaryPlayerBackground),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(R.drawable.outline_audiotrack_24),
                 contentDescription = null,
-                tint = Primary,
+                tint = Color.Black,
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -101,7 +106,7 @@ fun ConvertedFileItem(
         CircularAction(
             icon = R.drawable.outline_play_arrow_24,
             contentDescription = "Play ${file.name}",
-            background = Primary,
+            background = PrimaryPlayerBackground,
             iconTint = Color.Black,
             onClick = onPlayClick
         )
@@ -110,7 +115,7 @@ fun ConvertedFileItem(
             icon = R.drawable.outline_share_24,
             contentDescription = "Share ${file.name}",
             background = ControlSurface,
-            iconTint = Primary,
+            iconTint = PrimaryPlayerBackground,
             onClick = onShareClick
         )
 

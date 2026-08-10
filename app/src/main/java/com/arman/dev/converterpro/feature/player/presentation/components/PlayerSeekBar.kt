@@ -30,9 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arman.dev.converterpro.core.designsystem.color.AppOutline
-import com.arman.dev.converterpro.core.designsystem.color.Primary
-import com.arman.dev.converterpro.core.designsystem.color.TextHint
+import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.IconStroke
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.feature.home.presentation.components.ReusableText
 import kotlin.math.roundToInt
 
@@ -91,7 +91,7 @@ fun PlayerSeekBar(
                     .fillMaxWidth()
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(AppOutline)
+                    .background(IconBackground)
             )
 
             Box(
@@ -99,7 +99,7 @@ fun PlayerSeekBar(
                     .width(with(density) { (shownProgress * trackWidthPx).toDp() })
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(Primary)
+                    .background(PrimaryPlayerBackground)
             )
 
             Box(
@@ -114,7 +114,7 @@ fun PlayerSeekBar(
                     }
                     .size(thumbSize)
                     .clip(CircleShape)
-                    .background(Primary)
+                    .background(PrimaryPlayerBackground)
             )
         }
 
@@ -131,5 +131,5 @@ fun PlayerSeekBar(
 private val TimeLabelStyle = TextStyle(
     fontSize = 12.sp,
     fontWeight = FontWeight.Normal,
-    color = TextHint
+    color = IconStroke
 )

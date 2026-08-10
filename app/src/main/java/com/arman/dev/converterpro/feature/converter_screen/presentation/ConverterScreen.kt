@@ -35,8 +35,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.arman.dev.converterpro.core.designsystem.color.AppBackground
 import com.arman.dev.converterpro.core.designsystem.color.AppSurface
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
+import com.arman.dev.converterpro.core.designsystem.color.TopBarBackground
 import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.BitRate
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.BitrateValue
@@ -45,7 +46,7 @@ import com.arman.dev.converterpro.feature.converter_screen.domain.model.Conversi
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.Encoder
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.Extension
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.SampleRate
-import com.arman.dev.converterpro.feature.converter_screen.presentation.components.ConverterScreenTopBar
+import com.arman.dev.converterpro.feature.converter_screen.presentation.components.ConvertTopBar
 import com.arman.dev.converterpro.feature.converter_screen.presentation.components.CustomDropDown
 import com.arman.dev.converterpro.feature.converter_screen.presentation.components.FileBox
 import com.arman.dev.converterpro.feature.converter_screen.presentation.components.RenameFileDialog
@@ -179,15 +180,15 @@ fun ConverterScreenUi(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(AppBackground)
+            .background(PrimaryBackground)
     ) {
         Column(
             modifier = modifier
                 .fillMaxSize()
         ) {
-            ConverterScreenTopBar(
+            ConvertTopBar(
                 modifier = Modifier
-                    .background(AppSurface),
+                    .background(TopBarBackground),
                 onConvertClick = onConvertClick,
                 onBackClick = onBackClick
             )

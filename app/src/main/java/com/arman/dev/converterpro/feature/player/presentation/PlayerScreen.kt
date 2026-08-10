@@ -24,11 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.arman.dev.converterpro.core.designsystem.color.AppBackground
-import com.arman.dev.converterpro.core.designsystem.color.AppOutline
 import com.arman.dev.converterpro.core.designsystem.color.DangerRed
-import com.arman.dev.converterpro.core.designsystem.color.Primary
-import com.arman.dev.converterpro.core.designsystem.color.TextHint
+import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.IconStroke
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.feature.home.presentation.components.ReusableText
 import com.arman.dev.converterpro.feature.player.presentation.components.PlayerArtwork
 import com.arman.dev.converterpro.feature.player.presentation.components.PlayerControls
@@ -70,7 +70,7 @@ fun PlayerScreenUi(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(AppBackground)
+            .background(PrimaryBackground)
     ) {
         PlayerScreenTopBar(
             title = uiState.fileName.ifBlank { "Player" },
@@ -88,31 +88,31 @@ fun PlayerScreenUi(
                     .padding(horizontal = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(56.dp))
 
                 PlayerArtwork(isPlaying = uiState.isPlaying)
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 ReusableText(
                     text = uiState.statusLabel,
                     style = TextStyle(
-                        fontSize = 18.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Primary,
+                        color = PrimaryPlayerBackground,
                         textAlign = TextAlign.Center
                     )
                 )
 
                 if (uiState.subtitle.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     ReusableText(
                         text = uiState.subtitle,
                         style = TextStyle(
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Normal,
-                            color = TextHint,
+                            color = IconStroke,
                             textAlign = TextAlign.Center
                         )
                     )
@@ -129,7 +129,7 @@ fun PlayerScreenUi(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp),
-                    containerColor = AppOutline,
+                    containerColor = IconBackground,
                     contentColor = DangerRed
                 ) {
                     ReusableText(
@@ -148,7 +148,7 @@ fun PlayerScreenUi(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 28.dp)
-                .padding(bottom = 28.dp)
+                .padding(bottom = 32.dp)
                 .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
@@ -182,13 +182,13 @@ private const val ERROR_VISIBLE_MS = 3_000L
 private fun PlayerScreenPreview() {
     PlayerScreenUi(
         uiState = PlayerUiState(
-            fileName = "VID20260801174100.aac",
-            statusLabel = "Now Playing",
-            subtitle = "AAC · 256 kbps · Stereo",
+            fileName = "21335_converted.aac",
+            statusLabel = "Playing",
+            subtitle = "AAC · 64 kbps · Stereo",
             isPlaying = true,
-            progress = 0.42f,
-            positionLabel = "1:08",
-            durationLabel = "2:41",
+            progress = 0.4f,
+            positionLabel = "0:02",
+            durationLabel = "0:05",
             hasTrack = true
         ),
         onBackClick = {},

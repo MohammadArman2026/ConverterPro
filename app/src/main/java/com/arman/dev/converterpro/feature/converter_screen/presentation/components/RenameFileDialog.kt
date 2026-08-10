@@ -1,6 +1,7 @@
 package com.arman.dev.converterpro.feature.converter_screen.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.arman.dev.converterpro.core.designsystem.color.AppSurface
+import com.arman.dev.converterpro.core.designsystem.color.DropDownBackground
+import com.arman.dev.converterpro.core.designsystem.color.DropDownStroke
 import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.feature.home.presentation.components.ReusableText
 
 @Composable
@@ -43,8 +48,9 @@ fun RenameFileDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .clip(RoundedCornerShape(20.dp))
-                .background(AppSurface)
+                .clip(RoundedCornerShape(16.dp))
+                .background(DropDownBackground)
+                .border(1.dp , DropDownStroke , RoundedCornerShape(16.dp))
                 .padding(20.dp)
         ) {
 
@@ -65,7 +71,7 @@ fun RenameFileDialog(
                 // 🔹 Label
                 Text(
                     text = "Output file name",
-                    color = Color(0xFFFFD84D),
+                    color = PrimaryPlayerBackground,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -78,8 +84,8 @@ fun RenameFileDialog(
                     onValueChange = { fileName = it },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Primary,
-                        unfocusedBorderColor = Primary,
+                        focusedBorderColor = PrimaryPlayerBackground,
+                        unfocusedBorderColor = PrimaryPlayerBackground,
                         cursorColor = Color.White,
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
@@ -101,7 +107,7 @@ fun RenameFileDialog(
                         .height(48.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFFEB3B),
+                        containerColor = PrimaryPlayerBackground,
                         contentColor = Color.Black
                     )
                 ) {

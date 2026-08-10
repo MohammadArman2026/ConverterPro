@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -27,6 +30,8 @@ import com.arman.dev.converterpro.core.designsystem.color.AppSurface
 import com.arman.dev.converterpro.core.designsystem.color.ControlSurface
 import com.arman.dev.converterpro.core.designsystem.color.Primary
 import com.arman.dev.converterpro.core.designsystem.color.TextHint
+import com.arman.dev.converterpro.core.designsystem.color.TopBarBackground
+import com.arman.dev.converterpro.feature.home.presentation.components.ReusableIcon
 import com.arman.dev.converterpro.feature.home.presentation.components.ReusableText
 
 @Composable
@@ -38,52 +43,41 @@ fun FilesScreenTopBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(AppSurface)
+            .background(TopBarBackground)
     ) {
-        Row(
+        Row (
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(ControlSurface)
-                    .clickable(onClick = onBackClick),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.outline_chevron_left_24),
-                    contentDescription = "Back",
-                    tint = Color.White,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
+            Spacer(Modifier.width(16.dp))
+            ReusableIcon(
+                modifier = Modifier,
+                onClick = onBackClick,
+                icon = R.drawable.outline_chevron_left_24
+            )
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier,
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 ReusableText(
-                    text = "Converted files",
+                    text = "Files",
                     style = TextStyle(
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = Color.White,
                     )
                 )
 
-                if (fileCountLabel != null) {
+                fileCountLabel?.let { it->
                     ReusableText(
-                        text = fileCountLabel,
+                        text = it,
                         style = TextStyle(
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = TextHint
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
                         )
                     )
                 }

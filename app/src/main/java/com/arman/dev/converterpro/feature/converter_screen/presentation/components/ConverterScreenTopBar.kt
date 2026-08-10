@@ -1,12 +1,10 @@
 package com.arman.dev.converterpro.feature.converter_screen.presentation.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
@@ -21,58 +19,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.R
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
+import com.arman.dev.converterpro.core.designsystem.color.TopBarBackground
+import com.arman.dev.converterpro.feature.home.presentation.components.ReusableIcon
 import com.arman.dev.converterpro.feature.home.presentation.components.ReusableText
-
-@Composable
-fun ConverterScreenTopBar(
-    modifier: Modifier = Modifier,
-    onBackClick: () -> Unit,
-    onConvertClick:()-> Unit
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .statusBarsPadding(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ){
-                ReusableText(
-                    text = "Back",
-                    modifier = Modifier.clickable{
-                        onBackClick()
-                    },
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        color = Primary
-                    )
-                )
-
-                ReusableText(
-                    text = "Format",
-                    style = TextStyle(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                        color = Color.White
-                    )
-                )
-            }
-            ConvertButton(
-                onConvertClick = onConvertClick
-            )
-        }
-    }
-}
 
 @Composable
 private fun ConvertButton(modifier: Modifier = Modifier,
@@ -81,8 +32,10 @@ private fun ConvertButton(modifier: Modifier = Modifier,
         modifier = modifier
             .wrapContentSize(),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Primary
+            containerColor = PrimaryPlayerBackground,
+            contentColor = Color.Black
         ),
+
         shape = MaterialTheme.shapes.medium,
         onClick = onConvertClick
     ) {
@@ -95,5 +48,37 @@ private fun ConvertButton(modifier: Modifier = Modifier,
                 color = Color.Black
             )
         )
+    }
+}
+
+@Composable
+fun ConvertTopBar(
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit,
+    onConvertClick: () -> Unit
+){
+    Box (
+        modifier = modifier
+            .fillMaxWidth()
+            .background(TopBarBackground)
+    ){
+        Row (
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            ReusableIcon(
+                modifier = Modifier,
+                onClick = onBackClick,
+                icon = R.drawable.outline_chevron_left_24
+            )
+
+            ConvertButton(
+                onConvertClick = onConvertClick
+            )
+        }
     }
 }

@@ -67,7 +67,7 @@ private fun PlaybackState.toUiState(): PlayerUiState {
         statusLabel = when {
             track == null -> "Nothing playing"
             isBuffering -> "Loading"
-            isPlaying -> "Now Playing"
+            isPlaying -> "Playing"
             else -> "Paused"
         },
         subtitle = track?.subtitle.orEmpty(),
