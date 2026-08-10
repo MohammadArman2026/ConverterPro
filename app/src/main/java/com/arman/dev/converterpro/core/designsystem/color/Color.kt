@@ -25,3 +25,14 @@ val DangerRed = Color(0xFFE5484D)
 val PlayerArtRing = Color(0xFF101010)
 val PlayerArtGradientStart = Color(0xFFFFC04D)
 val PlayerArtGradientEnd = Color(0xFFCC7A00)
+
+
+
+val PrimaryBackground = Color(0XFF141414)
+val TopBarBackground = Color(0XFF1A1A1A)
+val IconBackground = Color(0XFF2A2A2A)
+val IconStroke = Color(0xFF9CA3AF)
+val PrimaryPlayerBackground = Color(0XFF39FF14)
+val DropDownBackground = Color(0XFF111111)
+val DropDownStroke = Color(0XFF333333)
+

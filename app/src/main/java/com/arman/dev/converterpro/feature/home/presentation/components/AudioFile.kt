@@ -2,11 +2,13 @@ package com.arman.dev.converterpro.feature.home.presentation.components
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,10 +36,14 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
+import com.arman.dev.converterpro.core.designsystem.color.DropDownBackground
+import com.arman.dev.converterpro.core.designsystem.color.DropDownStroke
 import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.core.model.MediaFile
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +71,8 @@ fun AudioFile(
                     anchorWidth = it.size.width
                 }
                 .clip(MaterialTheme.shapes.medium)
-                .background(Color(0xFF1B1B1B))
+                .background(DropDownBackground)
+                .border(1.dp , DropDownStroke , MaterialTheme.shapes.medium)
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
@@ -85,7 +92,7 @@ fun AudioFile(
                             bottomEnd = 8.dp
                         )
                     )
-                    .background(Primary),
+                    .background(PrimaryPlayerBackground),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -98,6 +105,8 @@ fun AudioFile(
                 )
             }
 
+            Spacer(Modifier.width(4.dp))
+
             mediaFile.name?.let {
                 Text(
                     text = it,
@@ -107,7 +116,8 @@ fun AudioFile(
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
+                    maxLines = 1 ,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -115,7 +125,7 @@ fun AudioFile(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(Primary)
+                    .background(PrimaryPlayerBackground)
                     .clickable {
                         removeCallback(mediaFile.uri)
                     },

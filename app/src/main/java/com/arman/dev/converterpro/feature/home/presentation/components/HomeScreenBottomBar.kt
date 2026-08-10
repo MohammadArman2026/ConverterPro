@@ -8,7 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -20,16 +24,105 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
+
+
+@Composable
+fun HomeBottomBar(
+    modifier: Modifier = Modifier,
+    onFileClick: () -> Unit,
+    onSettingClick: () -> Unit,
+    onImportClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .padding(horizontal = 32.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        BottomIcon(
+            icon = R.drawable.outline_drive_file_move_24,
+            onClick = onFileClick
+        )
+
+        UploadIcon (
+            onClick = onImportClick
+        )
+
+        BottomIcon(
+            icon = R.drawable.outline_settings_24,
+            onClick = onSettingClick
+        )
+    }
+}
+
+@Composable
+fun UploadIcon(
+    modifier: Modifier = Modifier,
+    icon: Int = R.drawable.outline_upload_file_24,
+    iconBackground: Color = PrimaryPlayerBackground,
+    iconColor: Color = Color.Black,
+    iconBoxSize :Dp = 32.dp ,
+    iconSize : Dp = 24.dp,
+    onClick: () -> Unit
+){
+
+    Box (
+        modifier = modifier
+            .size(iconBoxSize)
+            .clip(CircleShape)
+            .background(iconBackground)
+            .clickable{
+                onClick()
+            },
+        contentAlignment = Alignment.Center
+    ){
+        Icon(
+            painter = painterResource(icon),
+            tint = iconColor,
+            modifier = Modifier.size(iconSize),
+            contentDescription = "icon"
+        )
+    }
+}
+
+@Composable
+private fun BottomIcon(
+    modifier: Modifier = Modifier,
+    icon:Int ,
+    size: Dp = 32.dp,
+    color: Color = Color.White,
+    onClick: () -> Unit
+){
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(CircleShape)
+            .clickable{
+                onClick()
+            }
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = "icon",
+            modifier = Modifier.size(24.dp),
+            tint = color
+        )
+    }
+}
 
 @Composable
 fun HomeScreenBottomBar(
     modifier: Modifier = Modifier,
-    onFileClick :()-> Unit,
-    onVideoClick:()-> Unit
+    onFileClick: () -> Unit,
+    onVideoClick: () -> Unit
 ) {
     Box(
         modifier = modifier
@@ -89,7 +182,7 @@ private fun FileSelectorItem(
         modifier = modifier
             .clip(MaterialTheme.shapes.large)
             .background(iconBackground)
-            .clickable{
+            .clickable {
                 onClick()
             },
         contentAlignment = Alignment.Center
@@ -107,9 +200,9 @@ private fun FileSelectorItem(
             )
 
             ReusableText(
-                text = text ,
+                text = text,
                 style = TextStyle(
-                    fontSize = 18.sp ,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Black,
                 )

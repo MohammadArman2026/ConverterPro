@@ -3,7 +3,6 @@ package com.arman.dev.converterpro.feature.home.presentation
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,19 +30,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.arman.dev.converterpro.core.designsystem.color.AppBackground
 import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
 import com.arman.dev.converterpro.core.model.MediaFile
-import com.arman.dev.converterpro.feature.home.domain.model.SettingOption
 import com.arman.dev.converterpro.feature.home.presentation.components.AudioFile
-import com.arman.dev.converterpro.feature.home.presentation.components.HomeScreenBottomBar
-import com.arman.dev.converterpro.feature.home.presentation.components.HomeScreenTopBar
+import com.arman.dev.converterpro.feature.home.presentation.components.HomeBottomBar
+import com.arman.dev.converterpro.feature.home.presentation.components.HomeTopBar
 
 
 @Composable
 fun HomeScreenRoute(
     onNextClick: (List<MediaFile>) -> Unit,
-    onConvertedFilesClick: () -> Unit
+    onFileClick: () -> Unit,
+    onSettingClick :()-> Unit
 ){
 
     val homeViewModel: HomeViewModel = hiltViewModel()
@@ -68,47 +67,24 @@ fun HomeScreenRoute(
         }
     }
 
-    val videoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia()
-    ) { uris ->
-        if (uris.isNotEmpty()) {
-            homeViewModel.processUris(uris)
-        }
-    }
-
     HomeScreenUi(
         modifier = Modifier,
         uiState = uiState,
-        onSettingClick = {
-            when(it){
-                SettingOption.UPGRADE -> {}
-                SettingOption.CONVERTED_FILES -> onConvertedFilesClick()
-                SettingOption.WRITE_A_FEEDBACK -> {}
-                SettingOption.SHARE_THIS_APP -> {}
-                SettingOption.MANAGE_SUBSCRIPTION -> {}
-                SettingOption.CONTACT_US -> {}
-            }
-        },
         onNextClick = {
             onNextClick(uiState.mediaList)
             homeViewModel.clearSelection()
         },
-        onFilePick = {
+        isNextButtonVisible = isNextButtonVisible,
+        onRemoveClick = {
+            homeViewModel.removeUri(it)
+        },
+        onSettingClick = onSettingClick,
+        onImportClick = {
             filePickerLauncher.launch(
                 arrayOf("audio/*", "video/*")
             )
         },
-        onVideoPick = {
-            videoPickerLauncher.launch(
-                PickVisualMediaRequest(
-                    ActivityResultContracts.PickVisualMedia.VideoOnly
-                )
-            )
-        },
-        isNextButtonVisible = isNextButtonVisible,
-        onRemoveClick = {
-            homeViewModel.removeUri(it)
-        }
+        onFileClick  = onFileClick
     )
 }
 
@@ -116,26 +92,23 @@ fun HomeScreenRoute(
 @Composable
 fun HomeScreenUi(
     modifier: Modifier = Modifier,
-    onSettingClick :(SettingOption)-> Unit,
-    onNextClick:()-> Unit,
-    onFilePick:()-> Unit,
-    onVideoPick:()-> Unit,
+    onNextClick: () -> Unit,
     uiState: HomeUiState,
-    isNextButtonVisible : Boolean,
-    onRemoveClick:(Uri)-> Unit
+    isNextButtonVisible: Boolean,
+    onRemoveClick: (Uri) -> Unit,
+    onFileClick :()-> Unit,
+    onImportClick: () -> Unit,
+    onSettingClick: () -> Unit
 ){
     Column (
         modifier = modifier
             .fillMaxSize()
-            .background(AppBackground)
+            .background(PrimaryBackground)
     ){
-        HomeScreenTopBar(
-            modifier = Modifier,
-            onSettingClick = onSettingClick,
+        HomeTopBar(
             isNextButtonVisible = isNextButtonVisible,
-            onNextClick = onNextClick
+            onClick = onNextClick
         )
-
         when{
             uiState.isLoading ->{
                 Box(modifier = Modifier.fillMaxWidth().weight(1f),
@@ -178,13 +151,11 @@ fun HomeScreenUi(
             }
         }
 
-        HomeScreenBottomBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 12.dp)
-                .navigationBarsPadding(),
-            onFileClick = onFilePick,
-            onVideoClick = onVideoPick
+        HomeBottomBar(
+            modifier = Modifier.navigationBarsPadding(),
+            onFileClick = onFileClick,
+            onSettingClick = onSettingClick,
+            onImportClick = onImportClick
         )
     }
 }
@@ -195,11 +166,11 @@ fun HomeScreenPreview(){
     HomeScreenUi(
         modifier = Modifier,
         onSettingClick = {},
-        onFilePick = {},
         onNextClick = {},
-        onVideoPick = {},
         uiState = HomeUiState(),
         isNextButtonVisible = true,
-        onRemoveClick = {}
+        onRemoveClick = {},
+        onImportClick = {},
+        onFileClick = {},
     )
 }

@@ -34,9 +34,8 @@ fun AppNavGraph(
                         ?.set(SELECTED_MEDIA_FILES_KEY, ArrayList(mediaFiles))
                     navController.navigate(Routes.CONVERTER)
                 },
-                onConvertedFilesClick = {
-                    navController.navigateSingleTop(Routes.FILES)
-                }
+                onFileClick =  {},
+                onSettingClick = {},
             )
         }
 
