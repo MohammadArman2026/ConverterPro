@@ -1,14 +1,15 @@
 package com.arman.dev.converterpro.core.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
 import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.converter_screen.presentation.ConverterScreenRoute
 import com.arman.dev.converterpro.feature.files.presentation.FilesScreenRoute
@@ -17,7 +18,7 @@ import com.arman.dev.converterpro.feature.player.presentation.PlayerScreenRoute
 import com.arman.dev.converterpro.feature.settings.presentation.SettingsScreenRoute
 
 private const val SELECTED_MEDIA_FILES_KEY = "selected_media_files"
-private const val NAV_ANIM_MS = 320
+private const val NAV_ANIM_MS = 480
 
 @Composable
 fun AppNavGraph(
@@ -28,30 +29,42 @@ fun AppNavGraph(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier,
+        modifier = modifier.background(PrimaryBackground),
         enterTransition = {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(NAV_ANIM_MS),
-            ) + fadeIn(animationSpec = tween(NAV_ANIM_MS))
+                animationSpec = tween(
+                    durationMillis = NAV_ANIM_MS,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
         },
         exitTransition = {
             slideOutOfContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(NAV_ANIM_MS),
-            ) + fadeOut(animationSpec = tween(NAV_ANIM_MS))
+                animationSpec = tween(
+                    durationMillis = NAV_ANIM_MS,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
         },
         popEnterTransition = {
             slideIntoContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(NAV_ANIM_MS),
-            ) + fadeIn(animationSpec = tween(NAV_ANIM_MS))
+                animationSpec = tween(
+                    durationMillis = NAV_ANIM_MS,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
         },
         popExitTransition = {
             slideOutOfContainer(
                 towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(NAV_ANIM_MS),
-            ) + fadeOut(animationSpec = tween(NAV_ANIM_MS))
+                animationSpec = tween(
+                    durationMillis = NAV_ANIM_MS,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
         },
     ) {
         composable(
@@ -65,10 +78,10 @@ fun AppNavGraph(
                     navController.navigate(Routes.CONVERTER)
                 },
                 onFileClick = {
-                    navController.navigateSingleTop(Routes.FILES)
+                    navController.navigate(Routes.FILES)
                 },
                 onSettingClick = {
-                    navController.navigateSingleTop(Routes.SETTINGS)
+                    navController.navigate(Routes.SETTINGS)
                 },
             )
         }

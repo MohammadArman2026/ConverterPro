@@ -70,6 +70,7 @@ fun FilesScreenRoute(
                 PackageManager.PERMISSION_GRANTED
         )
     }
+    var isEnterTransitionSettled by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -78,11 +79,19 @@ fun FilesScreenRoute(
         isPermissionResolved = true
     }
 
-    LaunchedEffect(isPermissionResolved) {
-        if (isPermissionResolved) {
-            filesViewModel.loadFiles()
-        } else {
+    // Defer permission UI and MediaStore work until the slide-in finishes, so Files
+    // navigates as smoothly as the lighter Settings screen.
+    LaunchedEffect(Unit) {
+        delay(ENTER_TRANSITION_SETTLE_MS)
+        isEnterTransitionSettled = true
+        if (!isPermissionResolved) {
             permissionLauncher.launch(audioPermission)
+        }
+    }
+
+    LaunchedEffect(isEnterTransitionSettled, isPermissionResolved) {
+        if (isEnterTransitionSettled && isPermissionResolved) {
+            filesViewModel.loadFiles()
         }
     }
 
@@ -291,6 +300,7 @@ private fun Context.shareAudioFile(file: ConvertedFile) {
 
 private const val FILE_CONTENT_TYPE = "converted_file"
 private const val SNACKBAR_VISIBLE_MS = 2_500L
+private const val ENTER_TRANSITION_SETTLE_MS = 500L
 
 @Preview(showBackground = true)
 @Composable

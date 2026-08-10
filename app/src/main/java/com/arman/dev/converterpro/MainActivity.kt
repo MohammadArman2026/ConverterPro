@@ -5,9 +5,12 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
 import com.arman.dev.converterpro.core.designsystem.theme.ConverterProTheme
 import com.arman.dev.converterpro.core.ffmpeg.FfmpegNative
 import com.arman.dev.converterpro.core.navigation.AppNavGraph
@@ -21,11 +24,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ConverterProTheme {
-                val navController = rememberNavController()
-                AppNavGraph(
-                    navController = navController,
-                    modifier = Modifier.fillMaxSize()
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(PrimaryBackground)
+                ) {
+                    val navController = rememberNavController()
+                    AppNavGraph(
+                        navController = navController,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
     }
