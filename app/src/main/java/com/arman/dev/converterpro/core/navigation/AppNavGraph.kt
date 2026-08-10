@@ -1,5 +1,9 @@
 package com.arman.dev.converterpro.core.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -8,12 +12,12 @@ import androidx.navigation.compose.composable
 import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.converter_screen.presentation.ConverterScreenRoute
 import com.arman.dev.converterpro.feature.files.presentation.FilesScreenRoute
-import com.arman.dev.converterpro.feature.home.domain.model.SettingOption
 import com.arman.dev.converterpro.feature.home.presentation.HomeScreenRoute
 import com.arman.dev.converterpro.feature.player.presentation.PlayerScreenRoute
 import com.arman.dev.converterpro.feature.settings.presentation.SettingsScreenRoute
 
 private const val SELECTED_MEDIA_FILES_KEY = "selected_media_files"
+private const val NAV_ANIM_MS = 320
 
 @Composable
 fun AppNavGraph(
@@ -24,7 +28,31 @@ fun AppNavGraph(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                animationSpec = tween(NAV_ANIM_MS),
+            ) + fadeIn(animationSpec = tween(NAV_ANIM_MS))
+        },
+        exitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                animationSpec = tween(NAV_ANIM_MS),
+            ) + fadeOut(animationSpec = tween(NAV_ANIM_MS))
+        },
+        popEnterTransition = {
+            slideIntoContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                animationSpec = tween(NAV_ANIM_MS),
+            ) + fadeIn(animationSpec = tween(NAV_ANIM_MS))
+        },
+        popExitTransition = {
+            slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                animationSpec = tween(NAV_ANIM_MS),
+            ) + fadeOut(animationSpec = tween(NAV_ANIM_MS))
+        },
     ) {
         composable(
             route = Routes.HOME
