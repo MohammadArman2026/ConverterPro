@@ -23,7 +23,6 @@ import com.arman.dev.converterpro.feature.converter_screen.domain.model.qualityS
 import com.arman.dev.converterpro.feature.converter_screen.domain.repository.ConverterRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -193,9 +192,10 @@ class ConverterViewModel @Inject constructor(
 
             result
                 .onSuccess { convertedCount ->
+                    updateConversionState(
+                        ConversionState.InProgress(percent = 100, message = "Finishing up"),
+                    )
                     updateConversionState(ConversionState.Completed(convertedCount))
-                    delay(COMPLETED_STATE_VISIBLE_MS)
-                    updateConversionState(ConversionState.Idle)
                 }
                 .onFailure { error ->
                     updateConversionState(
@@ -230,9 +230,5 @@ class ConverterViewModel @Inject constructor(
 
     private fun updateConversionState(state: ConversionState) {
         _uiState.update { it.copy(conversionState = state) }
-    }
-
-    private companion object {
-        const val COMPLETED_STATE_VISIBLE_MS = 1_000L
     }
 }

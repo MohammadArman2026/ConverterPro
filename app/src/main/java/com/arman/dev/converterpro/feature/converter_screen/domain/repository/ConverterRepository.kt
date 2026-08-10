@@ -9,8 +9,8 @@ interface ConverterRepository {
     /**
      * Converts [files] with [settings].
      *
-     * Reports in-flight stages via [onProgress] (`PreparingSpace`, `NamingFile`, `Converting`).
-     * Terminal outcomes are returned as [Result]: success carries the converted file count.
+     * Reports in-flight progress via [onProgress] as [ConversionState.InProgress]
+     * with a percent from `0` to `100`. Terminal outcomes are returned as [Result].
      */
     suspend fun convert(
         files: List<MediaFile>,

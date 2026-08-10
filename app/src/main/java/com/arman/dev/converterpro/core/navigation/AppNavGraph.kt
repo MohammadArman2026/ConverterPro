@@ -55,7 +55,13 @@ fun AppNavGraph(
 
             ConverterScreenRoute(
                 mediaFile = mediaFiles,
-                onBackClick = navController::popBackStack
+                onBackClick = navController::popBackStack,
+                onConversionComplete = {
+                    navController.navigate(Routes.FILES) {
+                        popUpTo(Routes.CONVERTER) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
             )
         }
 

@@ -1,8 +1,12 @@
 package com.arman.dev.converterpro.feature.files.presentation.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,10 +19,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -30,15 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.arman.dev.converterpro.R
-import com.arman.dev.converterpro.core.designsystem.color.AppCard
 import com.arman.dev.converterpro.core.designsystem.color.ControlSurface
 import com.arman.dev.converterpro.core.designsystem.color.DangerRed
 import com.arman.dev.converterpro.core.designsystem.color.DropDownBackground
 import com.arman.dev.converterpro.core.designsystem.color.DropDownStroke
-import com.arman.dev.converterpro.core.designsystem.color.Primary
-import com.arman.dev.converterpro.core.designsystem.color.IconContainer
+import com.arman.dev.converterpro.core.designsystem.color.IconStroke
 import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
-import com.arman.dev.converterpro.core.designsystem.color.TextHint
 import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
 import com.arman.dev.converterpro.feature.home.presentation.components.ReusableText
 
@@ -51,8 +56,7 @@ fun ConvertedFileItem(
     onShareClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    // The play button always opens the player, so the row itself signals what is currently loaded.
-    val nameColor = if (isPlaying) Primary else Color.White
+    val nameColor = if (isPlaying) PrimaryPlayerBackground else Color.White
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -98,7 +102,7 @@ fun ConvertedFileItem(
                 style = TextStyle(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Normal,
-                    color = TextHint
+                    color = IconStroke
                 )
             )
         }
@@ -140,12 +144,28 @@ private fun CircularAction(
     iconSize: Dp = 18.dp,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.86f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "actionPressScale",
+    )
+
     Box(
         modifier = modifier
             .size(size)
+            .scale(scale)
             .clip(CircleShape)
             .background(background)
-            .clickable(onClick = onClick),
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(
+                    bounded = true,
+                    color = Color.White.copy(alpha = 0.35f),
+                ),
+                onClick = onClick,
+            ),
         contentAlignment = Alignment.Center
     ) {
         Icon(

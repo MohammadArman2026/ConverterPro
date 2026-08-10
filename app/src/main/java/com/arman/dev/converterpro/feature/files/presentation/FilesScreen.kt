@@ -44,13 +44,10 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arman.dev.converterpro.R
-import com.arman.dev.converterpro.core.designsystem.color.AppBackground
-import com.arman.dev.converterpro.core.designsystem.color.AppOutline
-import com.arman.dev.converterpro.core.designsystem.color.IconContainer
-import com.arman.dev.converterpro.core.designsystem.color.Primary
+import com.arman.dev.converterpro.core.designsystem.color.IconBackground
+import com.arman.dev.converterpro.core.designsystem.color.IconStroke
 import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
 import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
-import com.arman.dev.converterpro.core.designsystem.color.TextHint
 import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
 import com.arman.dev.converterpro.feature.files.presentation.components.ConvertedFileItem
 import com.arman.dev.converterpro.feature.files.presentation.components.FilesScreenTopBar
@@ -195,7 +192,7 @@ private fun LoadingState(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = Primary, strokeWidth = 3.dp)
+        CircularProgressIndicator(color = PrimaryPlayerBackground, strokeWidth = 3.dp)
     }
 }
 
@@ -213,17 +210,25 @@ private fun EmptyState(
     ) {
         Box(
             modifier = Modifier
-                .size(64.dp)
+                .size(72.dp)
                 .clip(CircleShape)
-                .background(IconContainer),
+                .background(PrimaryPlayerBackground.copy(alpha = 0.16f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                painter = painterResource(R.drawable.outline_audiotrack_24),
-                contentDescription = null,
-                tint = Primary,
-                modifier = Modifier.size(28.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(IconBackground),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.outline_audiotrack_24),
+                    contentDescription = null,
+                    tint = PrimaryPlayerBackground,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         }
 
         ReusableText(
@@ -231,7 +236,7 @@ private fun EmptyState(
             style = TextStyle(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
-                color = TextHint,
+                color = IconStroke,
                 textAlign = TextAlign.Center
             ),
             modifier = Modifier.padding(top = 20.dp)
@@ -254,15 +259,15 @@ private fun InlineSnackbar(
 
     Snackbar(
         modifier = modifier,
-        containerColor = AppOutline,
-        contentColor = Primary
+        containerColor = IconBackground,
+        contentColor = PrimaryPlayerBackground
     ) {
         ReusableText(
             text = message,
             style = TextStyle(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = Primary
+                color = PrimaryPlayerBackground
             )
         )
     }

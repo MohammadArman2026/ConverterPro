@@ -1,19 +1,23 @@
 package com.arman.dev.converterpro.feature.converter_screen.presentation
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +40,9 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arman.dev.converterpro.core.designsystem.color.AppSurface
+import com.arman.dev.converterpro.core.designsystem.color.DropDownStroke
 import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
+import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.core.designsystem.color.TopBarBackground
 import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.BitRate
@@ -51,17 +57,28 @@ import com.arman.dev.converterpro.feature.converter_screen.presentation.componen
 import com.arman.dev.converterpro.feature.converter_screen.presentation.components.FileBox
 import com.arman.dev.converterpro.feature.converter_screen.presentation.components.RenameFileDialog
 import com.arman.dev.converterpro.feature.home.presentation.components.ReusableText
+import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 @Composable
 fun ConverterScreenRoute(
     mediaFile: List<MediaFile>,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onConversionComplete: () -> Unit,
 ) {
     val viewModel: ConverterViewModel = hiltViewModel()
     LaunchedEffect(mediaFile) {
         viewModel.setMediaFile(mediaFile)
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.conversionState) {
+        if (uiState.conversionState is ConversionState.Completed) {
+            delay(COMPLETED_NAVIGATION_DELAY_MS)
+            onConversionComplete()
+        }
+    }
+
     var showDialog by remember {
         mutableStateOf(false)
     }
@@ -111,15 +128,25 @@ private fun ConversionProgressDialog(
     state: ConversionState,
     onErrorDismissed: () -> Unit,
 ) {
+    val targetPercent = when (state) {
+        is ConversionState.InProgress -> state.percent.coerceIn(0, 100)
+        is ConversionState.Completed -> 100
+        is ConversionState.Failed -> 0
+        ConversionState.Idle -> return
+    }
     val message = when (state) {
-        ConversionState.PreparingSpace -> "Preparing storage space"
-        ConversionState.NamingFile -> "Naming output file"
-        ConversionState.Converting -> "Converting audio"
-        is ConversionState.Completed -> "Conversion complete (${state.convertedFileCount} file(s))"
+        is ConversionState.InProgress -> state.message
+        is ConversionState.Completed ->
+            "Conversion complete (${state.convertedFileCount} file(s))"
         is ConversionState.Failed -> state.message
         ConversionState.Idle -> return
     }
-    val isTerminalState = state is ConversionState.Completed || state is ConversionState.Failed
+    val animatedProgress by animateFloatAsState(
+        targetValue = targetPercent / 100f,
+        animationSpec = tween(durationMillis = PROGRESS_ANIM_MS),
+        label = "conversionProgress",
+    )
+    val displayedPercent = (animatedProgress * 100f).roundToInt().coerceIn(0, 100)
 
     Dialog(
         onDismissRequest = {},
@@ -131,13 +158,31 @@ private fun ConversionProgressDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppSurface)
+                .background(AppSurface, shape = MaterialTheme.shapes.large)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            if (!isTerminalState) {
-                CircularProgressIndicator(color = Color.White)
+            if (state !is ConversionState.Failed) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(96.dp),
+                ) {
+                    CircularProgressIndicator(
+                        progress = { animatedProgress },
+                        modifier = Modifier.fillMaxSize(),
+                        color = PrimaryPlayerBackground,
+                        trackColor = DropDownStroke,
+                        strokeWidth = 6.dp,
+                    )
+                    Text(
+                        text = "$displayedPercent%",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
             Text(
                 text = message,
@@ -148,7 +193,9 @@ private fun ConversionProgressDialog(
             if (state is ConversionState.Failed) {
                 Button(
                     onClick = onErrorDismissed,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryPlayerBackground,
+                    ),
                 ) {
                     Text("Close", color = Color.Black)
                 }
@@ -157,6 +204,8 @@ private fun ConversionProgressDialog(
     }
 }
 
+private const val PROGRESS_ANIM_MS = 450
+private const val COMPLETED_NAVIGATION_DELAY_MS = 1_000L
 
 @Composable
 fun ConverterScreenUi(
@@ -164,57 +213,39 @@ fun ConverterScreenUi(
     onBackClick: () -> Unit,
     onConvertClick: () -> Unit,
     list: List<MediaFile>,
-    onFileClick:(MediaFile)-> Unit,
+    onFileClick: (MediaFile) -> Unit,
     showDialog: Boolean,
     selectedName: String,
-    onDismiss:()-> Unit,
-    onConfirm:(String)-> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
     uiState: ConverterUiState,
-    onExtensionSelected:(Extension)-> Unit,
-    onEncodingSelected:(Encoder)-> Unit,
-    onBitrateSelected:(BitRate)-> Unit,
-    onBitrateValueSelected:(BitrateValue)-> Unit,
-    onChannelSelected:(Channel)-> Unit,
-    onSampleRateSelected:(SampleRate)->Unit
+    onExtensionSelected: (Extension) -> Unit,
+    onEncodingSelected: (Encoder) -> Unit,
+    onBitrateSelected: (BitRate) -> Unit,
+    onBitrateValueSelected: (BitrateValue) -> Unit,
+    onChannelSelected: (Channel) -> Unit,
+    onSampleRateSelected: (SampleRate) -> Unit
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(PrimaryBackground)
     ) {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             ConvertTopBar(
-                modifier = Modifier
-                    .background(TopBarBackground),
+                modifier = Modifier.background(TopBarBackground),
                 onConvertClick = onConvertClick,
                 onBackClick = onBackClick
             )
 
-            Spacer(Modifier.height(12.dp))
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ReusableText(
-                        text = "Extension",
-                        modifier = Modifier.weight(3f),
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                    )
+                SettingRow(label = "Extension") {
                     CustomDropDown(
                         modifier = Modifier.weight(7f),
                         selectedDropDown = uiState.selectedExtension,
@@ -223,20 +254,7 @@ fun ConverterScreenUi(
                     )
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ReusableText(
-                        text = "Encoding",
-                        modifier = Modifier.weight(3f),
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                    )
+                SettingRow(label = "Encoding") {
                     CustomDropDown(
                         modifier = Modifier.weight(7f),
                         selectedDropDown = uiState.selectedEncoder,
@@ -245,21 +263,7 @@ fun ConverterScreenUi(
                     )
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ReusableText(
-                        text = "Bitrate",
-                        modifier = Modifier.weight(3f),
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                    )
-
+                SettingRow(label = "Bitrate") {
                     Row(
                         modifier = Modifier.weight(7f),
                         verticalAlignment = Alignment.CenterVertically,
@@ -280,20 +284,7 @@ fun ConverterScreenUi(
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ReusableText(
-                        text = "Channels",
-                        modifier = Modifier.weight(3f),
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                    )
+                SettingRow(label = "Channels") {
                     CustomDropDown(
                         modifier = Modifier.weight(7f),
                         selectedDropDown = uiState.selectedChannel,
@@ -302,20 +293,7 @@ fun ConverterScreenUi(
                     )
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ReusableText(
-                        text = "Sample Rate",
-                        modifier = Modifier.weight(3f),
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                    )
+                SettingRow(label = "Sample Rate") {
                     CustomDropDown(
                         modifier = Modifier.weight(7f),
                         selectedDropDown = uiState.selectedSampleRate,
@@ -323,22 +301,30 @@ fun ConverterScreenUi(
                         onSelectDropDown = onSampleRateSelected
                     )
                 }
+            }
 
-                Spacer(Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
                 FileBox(
                     file = list,
                     onFileClick = onFileClick
                 )
-                Spacer(Modifier.height(16.dp))
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text ="Tap an item to rename output file",
+                    text = "Tap an item to rename output file",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                     textAlign = TextAlign.Center
                 )
-                Spacer(Modifier.height(16.dp).navigationBarsPadding())
             }
         }
         if (showDialog) {
@@ -348,6 +334,29 @@ fun ConverterScreenUi(
                 onConfirm = onConfirm
             )
         }
+    }
+}
+
+@Composable
+private fun SettingRow(
+    label: String,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ReusableText(
+            text = label,
+            modifier = Modifier.weight(3f),
+            style = TextStyle(
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+        )
+        content()
     }
 }
 

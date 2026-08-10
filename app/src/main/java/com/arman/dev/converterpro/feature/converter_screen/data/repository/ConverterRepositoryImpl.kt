@@ -31,19 +31,45 @@ class ConverterRepositoryImpl @Inject constructor(
         try {
             require(files.isNotEmpty()) { "Select at least one audio file." }
 
-            onProgress(ConversionState.PreparingSpace)
+            onProgress(
+                ConversionState.InProgress(
+                    percent = 0,
+                    message = "Preparing storage space",
+                ),
+            )
             ensureEnoughStorage(files.sumOf(MediaFile::size))
 
+            val total = files.size
             var convertedCount = 0
-            files.forEach { input ->
-                onProgress(ConversionState.NamingFile)
+            files.forEachIndexed { index, input ->
+                val startPercent = (index * 100) / total
+                val midPercent = ((index * 100) + 50) / total
+                val endPercent = ((index + 1) * 100) / total
+
+                onProgress(
+                    ConversionState.InProgress(
+                        percent = startPercent.coerceIn(0, 99),
+                        message = "Naming output file",
+                    ),
+                )
                 val outputUri = createOutputFile(input, settings)
 
                 try {
-                    onProgress(ConversionState.Converting)
+                    onProgress(
+                        ConversionState.InProgress(
+                            percent = midPercent.coerceIn(1, 99),
+                            message = "Converting audio",
+                        ),
+                    )
                     convertFile(input, outputUri, settings)
                     markOutputReady(outputUri)
                     convertedCount++
+                    onProgress(
+                        ConversionState.InProgress(
+                            percent = endPercent.coerceIn(1, 100),
+                            message = "Converting audio",
+                        ),
+                    )
                 } catch (error: Exception) {
                     context.contentResolver.delete(outputUri, null, null)
                     throw error
