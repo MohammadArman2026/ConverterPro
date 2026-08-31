@@ -35,8 +35,7 @@ private fun ConvertButton(modifier: Modifier = Modifier,
             containerColor = PrimaryPlayerBackground,
             contentColor = Color.Black
         ),
-
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.small,
         onClick = onConvertClick
     ) {
         ReusableText(
@@ -66,7 +65,7 @@ fun ConvertTopBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ){
