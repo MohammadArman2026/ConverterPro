@@ -89,10 +89,20 @@ fun FilesScreenRoute(
         permissionLauncher.launch(audioPermission)
     }
 
+    val notificationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { /* Playback continues; the shade is best-effort on API 33+. */ }
+
     FilesScreenUi(
         uiState = uiState,
         onBackClick = onBackClick,
         onPlayClick = { file ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
             filesViewModel.onPlayClick(file)
             onOpenPlayer()
         },

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ConverterPro</string>
+    <string name="playback_notification_channel">Playback</string>
+    <string name="playback_session_activity">Open player</string>
 </resources>

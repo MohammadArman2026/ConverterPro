@@ -31,6 +31,10 @@ class PlayerViewModel @Inject constructor(
 
     fun onPreviousClick() = audioPlayer.skipToPrevious()
 
+    fun onSkipForward() = audioPlayer.skipForward()
+
+    fun onSkipBackward() = audioPlayer.skipBackward()
+
     fun onShuffleClick() = audioPlayer.toggleShuffle()
 
     fun onRepeatClick() = audioPlayer.cycleRepeatMode()
@@ -42,15 +46,6 @@ class PlayerViewModel @Inject constructor(
         val duration = audioPlayer.state.value.durationMs
         if (duration <= 0L) return
         audioPlayer.seekTo((duration * progress.coerceIn(0f, 1f)).toLong())
-    }
-
-    /**
-     * The app has no playback service, so audio is paused rather than left running unattended once
-     * the player screen goes away.
-     */
-    override fun onCleared() {
-        super.onCleared()
-        audioPlayer.pause()
     }
 
     private companion object {
@@ -72,6 +67,11 @@ private fun PlaybackState.toUiState(): PlayerUiState {
         },
         subtitle = track?.subtitle.orEmpty(),
         isPlaying = isPlaying,
+        currentPosition = positionMs,
+        duration = effectiveDuration,
+        currentTrack = track,
+        bufferedPosition = bufferedPositionMs,
+        isLoading = isBuffering,
         isBuffering = isBuffering,
         progress = if (effectiveDuration > 0L) {
             (positionMs.toFloat() / effectiveDuration).coerceIn(0f, 1f)

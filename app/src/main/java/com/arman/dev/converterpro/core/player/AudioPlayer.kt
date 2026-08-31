@@ -19,6 +19,10 @@ interface AudioPlayer {
 
     fun seekTo(positionMs: Long)
 
+    fun skipForward()
+
+    fun skipBackward()
+
     fun toggleShuffle()
 
     fun cycleRepeatMode()
