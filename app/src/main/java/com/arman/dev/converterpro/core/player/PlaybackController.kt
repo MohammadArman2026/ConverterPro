@@ -9,10 +9,12 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +27,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.util.concurrent.ExecutionException
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -45,7 +46,7 @@ class PlaybackController @Inject constructor(
     private val appContext = context.applicationContext
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val connectMutex = Mutex()
-    private val released = AtomicBoolean(false)
+    private var connectionGeneration = 0
 
     private val _state = MutableStateFlow(PlaybackState())
     override val state: StateFlow<PlaybackState> = _state.asStateFlow()
@@ -137,36 +138,47 @@ class PlaybackController @Inject constructor(
     }
 
     /**
-     * Drops the controller and listener. Safe if never connected. Does not stop the service or
-     * release ExoPlayer — those stay with [AudioPlayerService].
+     * Drops the controller and listener without killing this singleton. Safe if never connected.
+     * Does not stop the service or release ExoPlayer — those stay with [AudioPlayerService].
+     *
+     * In-flight commands are cancelled so they cannot restart the service during teardown.
+     * A later [setQueue] / play command reconnects.
      */
-    fun releaseController() {
-        if (!released.compareAndSet(false, true)) return
+    fun disconnect() {
+        connectionGeneration++
         stopPositionUpdates()
         detachListener()
+        val future = controllerFuture
         controller = null
-        controllerFuture?.let { MediaController.releaseFuture(it) }
         controllerFuture = null
-        scope.coroutineContext[Job]?.cancel()
+        future?.let { MediaController.releaseFuture(it) }
+        scope.coroutineContext.cancelChildren()
+        _state.value = PlaybackState()
     }
 
     private fun runOnController(block: (MediaController) -> Unit) {
+        val generation = connectionGeneration
         scope.launch {
-            runCatching { block(awaitController()) }
-                .onFailure { error ->
-                    _state.update {
-                        it.copy(
-                            isPlaying = false,
-                            isBuffering = false,
-                            error = error.message ?: "Unable to connect to playback."
-                        )
-                    }
+            try {
+                val player = awaitController()
+                if (generation != connectionGeneration) return@launch
+                block(player)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                _state.update {
+                    it.copy(
+                        isPlaying = false,
+                        isBuffering = false,
+                        error = error.message ?: "Unable to connect to playback."
+                    )
                 }
+            }
         }
     }
 
     private suspend fun awaitController(): MediaController = connectMutex.withLock {
-        if (released.get()) error("Playback controller was released.")
+        val generation = connectionGeneration
         controller?.takeIf { it.isConnected }?.let { return it }
 
         detachListener()
@@ -180,6 +192,10 @@ class PlaybackController @Inject constructor(
         val future = MediaController.Builder(appContext, token).buildAsync()
         controllerFuture = future
         val connected = future.awaitController()
+        if (generation != connectionGeneration) {
+            MediaController.releaseFuture(future)
+            error("Playback disconnected")
+        }
         controller = connected
         attachListener(connected)
         startPositionUpdates(connected)
@@ -222,7 +238,7 @@ class PlaybackController @Inject constructor(
     private fun startPositionUpdates(player: MediaController) {
         if (positionJob?.isActive == true) return
         positionJob = scope.launch {
-            while (isActive && !released.get() && player.isConnected) {
+            while (isActive && player.isConnected) {
                 publishPosition(player)
                 delay(if (player.isPlaying) POSITION_PLAYING_MS else POSITION_IDLE_MS)
             }
