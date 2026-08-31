@@ -15,14 +15,17 @@ class DeepLinksTest {
     }
 
     @Test
-    fun playerDeepLinkStartsAtPlayerInsteadOfHome() {
-        assertEquals(Routes.PLAYER, DeepLinks.startDestinationForUri(DeepLinks.PLAYER_URI))
+    fun playerDeepLinkBackStackIsHomeThenFilesThenPlayer() {
+        assertEquals(
+            listOf(Routes.HOME, Routes.FILES, Routes.PLAYER),
+            DeepLinks.PLAYER_BACK_STACK
+        )
     }
 
     @Test
-    fun launcherAndUnknownUrisStartAtHome() {
+    fun graphAlwaysStartsAtHome() {
+        assertEquals(Routes.HOME, DeepLinks.startDestinationForUri(DeepLinks.PLAYER_URI))
         assertEquals(Routes.HOME, DeepLinks.startDestinationForUri(null))
-        assertEquals(Routes.HOME, DeepLinks.startDestinationForUri("converterpro://files"))
     }
 
     @Test

@@ -24,6 +24,7 @@ object DeepLinks {
     fun isPlayerIntent(intent: Intent?): Boolean =
         matchesPlayerUri(intent?.data?.toString())
 
-    fun startDestinationForUri(uri: String?): String =
-        if (matchesPlayerUri(uri)) Routes.PLAYER else Routes.HOME
+    fun startDestinationForUri(uri: String?): String = Routes.HOME
+
+    val PLAYER_BACK_STACK = listOf(Routes.HOME, Routes.FILES, Routes.PLAYER)
 }

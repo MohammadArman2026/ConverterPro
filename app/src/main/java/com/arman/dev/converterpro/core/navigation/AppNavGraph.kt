@@ -1,6 +1,5 @@
 package com.arman.dev.converterpro.core.navigation
 
-import android.app.Activity
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -9,13 +8,14 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.util.Consumer
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.navDeepLink
 import com.arman.dev.converterpro.core.designsystem.color.PrimaryBackground
 import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.converter_screen.presentation.ConverterScreenRoute
@@ -31,13 +31,8 @@ private const val NAV_ANIM_MS = 480
 fun AppNavGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier,
+    startDestination: String = Routes.HOME
 ) {
-    val context = LocalContext.current
-    val activity = context as? ComponentActivity
-    val startDestination = remember(activity) {
-        DeepLinks.startDestinationForUri(activity?.intent?.data?.toString())
-    }
-
     HandleIncomingDeepLinks(navController)
 
     NavHost(
@@ -120,25 +115,30 @@ fun AppNavGraph(
             )
         }
 
-        composable(
-            route = Routes.FILES
+        navigation(
+            route = Routes.FILES_GRAPH,
+            startDestination = Routes.FILES,
         ) {
-            FilesScreenRoute(
-                onOpenPlayer = { navController.navigateSingleTop(Routes.PLAYER) },
-                onBackClick = navController::popBackStack
-            )
-        }
+            composable(
+                route = Routes.FILES
+            ) {
+                FilesScreenRoute(
+                    onOpenPlayer = { navController.navigateSingleTop(Routes.PLAYER) },
+                    onBackClick = navController::popBackStack
+                )
+            }
 
-        composable(
-            route = Routes.PLAYER
-        ) {
-            PlayerScreenRoute(
-                onBackClick = {
-                    if (!navController.popBackStack()) {
-                        (context as? Activity)?.finish()
+            composable(
+                route = Routes.PLAYER,
+                deepLinks = listOf(
+                    navDeepLink {
+                        uriPattern = DeepLinks.PLAYER_URI
+                        action = Intent.ACTION_VIEW
                     }
-                }
-            )
+                )
+            ) {
+                PlayerScreenRoute(onBackClick = navController::popBackStack)
+            }
         }
 
         composable(
@@ -159,7 +159,8 @@ private fun HandleIncomingDeepLinks(navController: NavHostController) {
             ?: return@DisposableEffect onDispose { }
         val listener = Consumer<Intent> { intent ->
             activity.intent = intent
-            if (DeepLinks.isPlayerIntent(intent)) {
+            if (!DeepLinks.isPlayerIntent(intent)) return@Consumer
+            if (!navController.handleDeepLink(intent)) {
                 navController.openPlayerFromDeepLink()
             }
         }
