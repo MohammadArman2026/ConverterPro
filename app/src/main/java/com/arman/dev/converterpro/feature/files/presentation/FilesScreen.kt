@@ -79,8 +79,8 @@ fun FilesScreenRoute(
         isPermissionResolved = true
     }
 
-    // Defer permission UI and MediaStore work until the slide-in finishes, so Files
-    // navigates as smoothly as the lighter Settings screen.
+    // Cached files already sit in the ViewModel, so the list can paint during the slide-in.
+    // Permission UI and MediaStore refresh wait until the animation finishes.
     LaunchedEffect(Unit) {
         delay(ENTER_TRANSITION_SETTLE_MS)
         isEnterTransitionSettled = true

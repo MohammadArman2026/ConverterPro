@@ -7,7 +7,15 @@ import kotlinx.coroutines.flow.Flow
 interface FilesRepository {
 
     /**
-     * Emits the converted files at least once, then again as richer details arrive.
+     * Last known list from disk or memory, without touching MediaStore.
+     *
+     * Used to paint Files immediately after process death or a later visit.
+     */
+    fun peekCachedFiles(): List<ConvertedFile>
+
+    /**
+     * Emits the cached list first when one exists, then the MediaStore list, then again as
+     * richer details arrive for files that were not already cached.
      *
      * Reading bitrate and channel counts means opening every file, which is far slower than the
      * MediaStore query itself. Emitting in stages lets the list render immediately instead of

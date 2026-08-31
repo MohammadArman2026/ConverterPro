@@ -8,6 +8,9 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import com.arman.dev.converterpro.core.common.Utils
+import com.arman.dev.converterpro.feature.files.data.cache.CachedConvertedFile
+import com.arman.dev.converterpro.feature.files.data.cache.ConvertedFilesCache
+import com.arman.dev.converterpro.feature.files.data.cache.mergeConvertedFiles
 import com.arman.dev.converterpro.feature.files.domain.model.ConvertedFile
 import com.arman.dev.converterpro.feature.files.domain.repository.FilesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,23 +27,40 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * Reads back the files the converter wrote into its `ConverterPro` output folder via MediaStore.
+ * Reads back the files the converter wrote into its `ConverterPro` output folder via MediaStore,
+ * overlaying cached bitrate, channels, and duration so revisits do not reopen every file.
  */
 class FilesRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val cache: ConvertedFilesCache
 ) : FilesRepository {
 
-    override fun convertedFiles(): Flow<Result<List<ConvertedFile>>> = flow {
-        val entries = queryConvertedFiles()
-        emit(Result.success(entries))
+    override fun peekCachedFiles(): List<ConvertedFile> = cache.peek().toConvertedFiles()
 
-        if (entries.isEmpty()) return@flow
+    override fun convertedFiles(): Flow<Result<List<ConvertedFile>>> = flow {
+        val cached = cache.peek()
+        if (cached.isNotEmpty()) {
+            emit(Result.success(cached.toConvertedFiles()))
+        }
+
+        val store = queryConvertedFiles()
+        val merged = mergeConvertedFiles(store.map { it.toCached() }, cached)
+            .toConvertedFiles()
+        emit(Result.success(merged))
+
+        if (merged.isEmpty()) {
+            cache.replaceAll(emptyList())
+            return@flow
+        }
 
         val detailed = coroutineScope {
-            entries
-                .map { entry -> async(metadataDispatcher) { entry.withTrackDetails() } }
-                .awaitAll()
+            merged.map { entry ->
+                async(metadataDispatcher) {
+                    if (entry.toCached().needsTrackDetails) entry.withTrackDetails() else entry
+                }
+            }.awaitAll()
         }
+        cache.replaceAll(detailed.map { it.toCached() })
         emit(Result.success(detailed))
     }.catch { error ->
         emit(Result.failure(error))
@@ -51,6 +71,7 @@ class FilesRepositoryImpl @Inject constructor(
             try {
                 val deletedRows = context.contentResolver.delete(uri, null, null)
                 if (deletedRows > 0) {
+                    cache.remove(ContentUris.parseId(uri))
                     Result.success(Unit)
                 } else {
                     Result.failure(IllegalStateException("That file could not be deleted."))
@@ -69,7 +90,7 @@ class FilesRepositoryImpl @Inject constructor(
      * the audio collection, so querying only audio would hide them from this screen.
      */
     private fun queryConvertedFiles(): List<ConvertedFile> {
-        val collection = MediaStore.Files.getContentUri(EXTERNAL_VOLUME)
+        val collection = filesCollection()
         val projection = arrayOf(
             MediaStore.MediaColumns._ID,
             MediaStore.MediaColumns.DISPLAY_NAME,
@@ -174,6 +195,30 @@ class FilesRepositoryImpl @Inject constructor(
         }
     }
 
+    private fun List<CachedConvertedFile>.toConvertedFiles(): List<ConvertedFile> {
+        val collection = filesCollection()
+        return map { cached ->
+            ConvertedFile(
+                id = cached.id,
+                uri = ContentUris.withAppendedId(collection, cached.id),
+                name = cached.name,
+                sizeBytes = cached.sizeBytes,
+                durationMs = cached.durationMs,
+                bitrateKbps = cached.bitrateKbps,
+                channels = cached.channels
+            )
+        }
+    }
+
+    private fun ConvertedFile.toCached(): CachedConvertedFile = CachedConvertedFile(
+        id = id,
+        name = name,
+        sizeBytes = sizeBytes,
+        durationMs = durationMs,
+        bitrateKbps = bitrateKbps,
+        channels = channels
+    )
+
     /**
      * Each [MediaExtractor] holds a native decoder, so metadata reads are capped rather than fanned
      * out across the whole IO pool.
@@ -185,5 +230,7 @@ class FilesRepositoryImpl @Inject constructor(
         const val OUTPUT_FOLDER = "ConverterPro"
         const val EXTERNAL_VOLUME = "external"
         const val METADATA_PARALLELISM = 4
+
+        fun filesCollection(): Uri = MediaStore.Files.getContentUri(EXTERNAL_VOLUME)
     }
 }

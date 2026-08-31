@@ -26,17 +26,26 @@ class FilesViewModel @Inject constructor(
     private var loadJob: Job? = null
 
     init {
+        val cached = filesRepository.peekCachedFiles()
+        if (cached.isNotEmpty()) {
+            _uiState.update { it.copy(isLoading = false, files = cached) }
+        }
         observePlayback()
     }
 
     /**
-     * The repository emits the bare list first and the metadata-enriched list after, so the spinner
-     * is cleared on the first emission and the rows fill in without blocking the screen.
+     * The repository emits the cached list first when one exists, then MediaStore, then
+     * metadata for files that were not already cached. A visible list is never replaced by
+     * a spinner.
      */
     fun loadFiles() {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            if (_uiState.value.files.isEmpty()) {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+            } else {
+                _uiState.update { it.copy(error = null) }
+            }
 
             filesRepository.convertedFiles().collect { result ->
                 result

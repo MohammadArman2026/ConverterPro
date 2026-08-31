@@ -1,5 +1,6 @@
 package com.arman.dev.converterpro.feature.converter_screen.data.repository
 
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
@@ -12,6 +13,8 @@ import com.arman.dev.converterpro.core.model.MediaFile
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.ConversionSettings
 import com.arman.dev.converterpro.feature.converter_screen.domain.model.ConversionState
 import com.arman.dev.converterpro.feature.converter_screen.domain.repository.ConverterRepository
+import com.arman.dev.converterpro.feature.files.data.cache.CachedConvertedFile
+import com.arman.dev.converterpro.feature.files.data.cache.ConvertedFilesCache
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,6 +24,7 @@ import javax.inject.Inject
 
 class ConverterRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val convertedFilesCache: ConvertedFilesCache,
 ) : ConverterRepository {
 
     override suspend fun convert(
@@ -63,6 +67,7 @@ class ConverterRepositoryImpl @Inject constructor(
                     )
                     convertFile(input, outputUri, settings)
                     markOutputReady(outputUri)
+                    rememberConvertedOutput(outputUri, input, settings)
                     convertedCount++
                     onProgress(
                         ConversionState.InProgress(
@@ -117,15 +122,55 @@ class ConverterRepositoryImpl @Inject constructor(
     }
 
     private fun createOutputFile(input: MediaFile, settings: ConversionSettings): Uri {
-        val outputName = input.name
+        val outputName = outputDisplayName(input, settings)
+
+        return outputTargets(settings.mimeType)
+            .firstNotNullOfOrNull { target -> reserveOutputFile(outputName, target) }
+            ?: error("Unable to reserve output storage.")
+    }
+
+    /**
+     * Writes the new row into the Files cache so the list can show it without opening the file.
+     */
+    private fun rememberConvertedOutput(
+        outputUri: Uri,
+        input: MediaFile,
+        settings: ConversionSettings,
+    ) {
+        convertedFilesCache.upsert(
+            CachedConvertedFile(
+                id = ContentUris.parseId(outputUri),
+                name = queryOutputName(outputUri) ?: outputDisplayName(input, settings),
+                sizeBytes = queryOutputSize(outputUri),
+                durationMs = input.durationMs ?: 0L,
+                bitrateKbps = settings.bitrateBitsPerSecond?.div(1_000),
+                channels = settings.channelCount,
+            )
+        )
+    }
+
+    private fun outputDisplayName(input: MediaFile, settings: ConversionSettings): String =
+        input.name
             ?.substringBeforeLast('.')
             .orEmpty()
             .ifBlank { "audio" }
             .plus("_converted.${settings.outputExtension}")
 
-        return outputTargets(settings.mimeType)
-            .firstNotNullOfOrNull { target -> reserveOutputFile(outputName, target) }
-            ?: error("Unable to reserve output storage.")
+    private fun queryOutputName(uri: Uri): String? {
+        val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
+        return context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getString(0) else null
+        }
+    }
+
+    private fun queryOutputSize(uri: Uri): Long {
+        context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { descriptor ->
+            if (descriptor.length >= 0L) return descriptor.length
+        }
+        val projection = arrayOf(MediaStore.MediaColumns.SIZE)
+        return context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else 0L
+        } ?: 0L
     }
 
     /**

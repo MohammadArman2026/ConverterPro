@@ -27,11 +27,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-externalNativeBuild {
-    cmake {
-        cppFlags += ""
-    }
-}
+        externalNativeBuild {
+            cmake {
+                cppFlags += ""
+                arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
 
 ndk {
     abiFilters += "arm64-v8a"

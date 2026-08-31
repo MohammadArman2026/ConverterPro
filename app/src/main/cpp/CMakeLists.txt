@@ -5,6 +5,10 @@ project("converterpro")
 add_library(native-lib SHARED
         native-lib.cpp)
 
+# Android 15+ devices can use 16 KB pages. ELF LOAD segments must be aligned to
+# 16384 bytes or Play Console rejects the APK.
+target_link_options(native-lib PRIVATE "-Wl,-z,max-page-size=16384")
+
 # This CMake file lives in app/src/main/cpp; FFmpeg headers and shared objects
 # are siblings of the cpp directory under app/src/main.
 set(FFMPEG_DIR ${CMAKE_CURRENT_LIST_DIR}/..)
