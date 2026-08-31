@@ -1,6 +1,7 @@
 package com.arman.dev.converterpro.feature.files.data.cache
 
 import java.io.File
+import kotlin.concurrent.thread
 
 /**
  * In-memory snapshot backed by a JSON file so the Files list survives process death.
@@ -12,6 +13,24 @@ class ConvertedFilesCache(private val cacheFile: File) {
 
     fun peek(): List<CachedConvertedFile> = synchronized(lock) {
         memory ?: readDisk().also { memory = it }
+    }
+
+    /**
+     * In-memory rows only. Never touches disk, so the Files screen can seed UI on the
+     * main thread without hitching the navigation animation.
+     */
+    fun snapshot(): List<CachedConvertedFile> = synchronized(lock) {
+        memory.orEmpty()
+    }
+
+    /**
+     * Reads the JSON file on a background thread so [snapshot] is populated before the
+     * user opens Files.
+     */
+    fun warmAsync() {
+        thread(name = "converted-files-cache-warm", isDaemon = true) {
+            peek()
+        }
     }
 
     fun replaceAll(files: List<CachedConvertedFile>) {

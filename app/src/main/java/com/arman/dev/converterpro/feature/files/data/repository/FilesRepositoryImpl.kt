@@ -35,7 +35,7 @@ class FilesRepositoryImpl @Inject constructor(
     private val cache: ConvertedFilesCache
 ) : FilesRepository {
 
-    override fun peekCachedFiles(): List<ConvertedFile> = cache.peek().toConvertedFiles()
+    override fun peekCachedFiles(): List<ConvertedFile> = cache.snapshot().toConvertedFiles()
 
     override fun convertedFiles(): Flow<Result<List<ConvertedFile>>> = flow {
         val cached = cache.peek()

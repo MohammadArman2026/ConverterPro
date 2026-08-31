@@ -107,4 +107,17 @@ class ConvertedFilesCacheTest {
         assertEquals(listOf(2L), cache.peek().map { it.id })
         assertEquals(listOf(2L), ConvertedFilesCache(file).peek().map { it.id })
     }
+
+    @Test
+    fun snapshotDoesNotReadDiskUntilPeek() {
+        val file = tempFolder.newFile("converted_files_cache.json")
+        ConvertedFilesCache(file).replaceAll(
+            listOf(CachedConvertedFile(3, "c.mp3", 300, 3_000, 128, 2))
+        )
+
+        val cold = ConvertedFilesCache(file)
+        assertTrue(cold.snapshot().isEmpty())
+        assertEquals(listOf(3L), cold.peek().map { it.id })
+        assertEquals(listOf(3L), cold.snapshot().map { it.id })
+    }
 }

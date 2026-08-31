@@ -7,9 +7,8 @@ import kotlinx.coroutines.flow.Flow
 interface FilesRepository {
 
     /**
-     * Last known list from disk or memory, without touching MediaStore.
-     *
-     * Used to paint Files immediately after process death or a later visit.
+     * In-memory snapshot of converted files. Empty until the cache has been warmed or a
+     * MediaStore load has completed. Safe to call on the main thread.
      */
     fun peekCachedFiles(): List<ConvertedFile>
 

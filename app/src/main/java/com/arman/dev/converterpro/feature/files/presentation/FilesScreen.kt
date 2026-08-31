@@ -70,8 +70,6 @@ fun FilesScreenRoute(
                 PackageManager.PERMISSION_GRANTED
         )
     }
-    var isEnterTransitionSettled by remember { mutableStateOf(false) }
-
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) {
@@ -79,20 +77,16 @@ fun FilesScreenRoute(
         isPermissionResolved = true
     }
 
-    // Cached files already sit in the ViewModel, so the list can paint during the slide-in.
-    // Permission UI and MediaStore refresh wait until the animation finishes.
+    // Show Files on this frame, like Settings. MediaStore refresh is IO and does not
+    // block the enter animation. The permission sheet waits until the slide finishes.
     LaunchedEffect(Unit) {
-        delay(ENTER_TRANSITION_SETTLE_MS)
-        isEnterTransitionSettled = true
-        if (!isPermissionResolved) {
-            permissionLauncher.launch(audioPermission)
-        }
+        filesViewModel.loadFiles()
     }
 
-    LaunchedEffect(isEnterTransitionSettled, isPermissionResolved) {
-        if (isEnterTransitionSettled && isPermissionResolved) {
-            filesViewModel.loadFiles()
-        }
+    LaunchedEffect(isPermissionResolved) {
+        if (isPermissionResolved) return@LaunchedEffect
+        delay(PERMISSION_DEFER_MS)
+        permissionLauncher.launch(audioPermission)
     }
 
     FilesScreenUi(
@@ -300,7 +294,7 @@ private fun Context.shareAudioFile(file: ConvertedFile) {
 
 private const val FILE_CONTENT_TYPE = "converted_file"
 private const val SNACKBAR_VISIBLE_MS = 2_500L
-private const val ENTER_TRANSITION_SETTLE_MS = 500L
+private const val PERMISSION_DEFER_MS = 480L
 
 @Preview(showBackground = true)
 @Composable
