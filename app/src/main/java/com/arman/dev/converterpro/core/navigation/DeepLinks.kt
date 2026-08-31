@@ -17,4 +17,13 @@ object DeepLinks {
                 Intent.FLAG_ACTIVITY_CLEAR_TOP or
                 Intent.FLAG_ACTIVITY_NEW_TASK
         }
+
+    fun matchesPlayerUri(uri: String?): Boolean =
+        uri == PLAYER_URI || uri?.startsWith("$PLAYER_URI?") == true
+
+    fun isPlayerIntent(intent: Intent?): Boolean =
+        matchesPlayerUri(intent?.data?.toString())
+
+    fun startDestinationForUri(uri: String?): String =
+        if (matchesPlayerUri(uri)) Routes.PLAYER else Routes.HOME
 }

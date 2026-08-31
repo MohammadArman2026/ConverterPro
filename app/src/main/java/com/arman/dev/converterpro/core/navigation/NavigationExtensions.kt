@@ -8,6 +8,12 @@ fun NavHostController.navigateSingleTop(route: String) {
     }
 }
 
+fun NavHostController.openPlayerFromDeepLink() {
+    if (currentDestination?.route == Routes.PLAYER) return
+    if (popBackStack(Routes.PLAYER, inclusive = false)) return
+    navigateSingleTop(Routes.PLAYER)
+}
+
 fun NavHostController.navigateAndClearBackStack(route: String) {
     navigate(route) {
         popUpTo(0) { inclusive = true }

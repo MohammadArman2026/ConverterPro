@@ -1,7 +1,6 @@
 package com.arman.dev.converterpro.core.navigation
 
 object Routes {
-    const val ROOT = "root"
     const val SPLASH = "splash"
     const val HOME = "home"
     const val CONVERTER = "converter"
