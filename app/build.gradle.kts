@@ -43,6 +43,14 @@ ndk {
     }
 
     buildTypes {
+        create("qa") {
+            initWith(getByName("debug"))
+            matchingFallbacks += listOf("debug")
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+            isDebuggable = true
+            resValue("string", "app_name", "ConverterPro QA")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -80,6 +88,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    add("qaImplementation", libs.androidx.ui.tooling)
+    add("qaImplementation", libs.androidx.ui.test.manifest)
 
 
     implementation(libs.hilt.android)
