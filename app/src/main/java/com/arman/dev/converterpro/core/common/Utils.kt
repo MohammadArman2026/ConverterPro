@@ -35,6 +35,22 @@ object Utils {
     }
 
     /**
+     * Duration in the largest fitting units, e.g. `45 sec`, `2 min 5 sec`, `1 hr 2 min`.
+     */
+    fun formatDurationLabel(durationMs: Long): String {
+        val totalSeconds = (durationMs.coerceAtLeast(0L) / 1000.0).roundToLong()
+        val hours = totalSeconds / 3600
+        val minutes = (totalSeconds % 3600) / 60
+        val seconds = totalSeconds % 60
+
+        return buildList {
+            if (hours > 0) add("$hours hr")
+            if (minutes > 0) add("$minutes min")
+            if (seconds > 0 || isEmpty()) add("$seconds sec")
+        }.joinToString(" ")
+    }
+
+    /**
      * MediaStore has no reliable bitrate column below API 31, so it is derived from size over duration.
      */
     fun estimateBitrateKbps(sizeBytes: Long, durationMs: Long?): Int? {

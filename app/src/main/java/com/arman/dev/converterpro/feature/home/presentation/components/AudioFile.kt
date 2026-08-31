@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arman.dev.converterpro.R
+import com.arman.dev.converterpro.core.common.Utils
 import com.arman.dev.converterpro.core.designsystem.color.DropDownBackground
 import com.arman.dev.converterpro.core.designsystem.color.DropDownStroke
 import com.arman.dev.converterpro.core.designsystem.color.Primary
@@ -153,11 +154,14 @@ fun AudioFile(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(mediaFile.name ?: "no name", color = Color.White)
-                Text("Size: ${mediaFile.size}", color = Color.White)
+                Text("Size: ${Utils.formatFileSize(mediaFile.size)}", color = Color.White)
                 Text("Sample rate: ${mediaFile.sampleRate ?: 0}", color = Color.White)
                 Text("Channels: ${mediaFile.channels ?: 0}", color = Color.White)
                 Text("Codec: ${mediaFile.codec ?: 0}", color = Color.White)
-                Text("Duration: ${mediaFile.durationMs ?: 0} ms", color = Color.White)
+                Text(
+                    "Duration: ${Utils.formatDurationLabel(mediaFile.durationMs ?: 0L)}",
+                    color = Color.White
+                )
             }
         }
     }
