@@ -34,25 +34,43 @@ android {
             }
         }
 
-ndk {
-    abiFilters += "arm64-v8a"
-}
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
+    }
 
+    flavorDimensions += "build"
 
+    productFlavors {
+        create("dev") {
+            dimension = "build"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "ConverterPro Dev")
+        }
 
+        create("qa") {
+            dimension = "build"
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+            resValue("string", "app_name", "ConverterPro QA")
+        }
+
+        create("prod") {
+            dimension = "build"
+            versionNameSuffix = "-prod"
+        }
     }
 
     buildTypes {
-        create("qa") {
-            initWith(getByName("debug"))
-            matchingFallbacks += listOf("debug")
-            applicationIdSuffix = ".qa"
-            versionNameSuffix = "-qa"
-            isDebuggable = true
-            resValue("string", "app_name", "ConverterPro QA")
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
         }
+
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -88,8 +106,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    add("qaImplementation", libs.androidx.ui.tooling)
-    add("qaImplementation", libs.androidx.ui.test.manifest)
 
 
     implementation(libs.hilt.android)
