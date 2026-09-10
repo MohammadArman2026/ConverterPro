@@ -17,3 +17,12 @@ val PrimaryPlayerBackground = Color(0XFF39FF14)
 val DropDownBackground = Color(0XFF111111)
 val DropDownStroke = Color(0XFF333333)
 
+// --- Crimson Red & Studio Light Theme ---
+val CrimsonPrimary = Color(0xFFC2185B)
+val CrimsonDark = Color(0xFFB71C1C)
+val CrimsonLight = Color(0xFFE53935)
+val CrimsonSurfaceTint = Color(0xFFFFEBEE)
+val StudioWhiteBackground = Color(0xFFF9F9FB)
+val CardBackground = Color(0xFFFFFFFF)
+val StringCoral = Color(0xFFFF5252)
+val StringBlush = Color(0xFFFF8A80)

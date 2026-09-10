@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,36 +37,48 @@ import com.arman.dev.converterpro.R
 import com.arman.dev.converterpro.core.designsystem.color.IconBackground
 import com.arman.dev.converterpro.core.designsystem.color.PrimaryPlayerBackground
 import com.arman.dev.converterpro.core.designsystem.color.TopBarBackground
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.arman.dev.converterpro.core.designsystem.color.CrimsonDark
 
 @Composable
 fun HomeTopBar(
     modifier: Modifier = Modifier,
-    topBarColor: Color = TopBarBackground,
+    topBarColor: Color = CrimsonDark,
     isNextButtonVisible: Boolean = false,
     onClick: () -> Unit
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(bottomStart = 28.dp, bottomEnd = 28.dp))
             .background(topBarColor)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            ReusableText(
-                text = "Converter Pro",
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
+            Column {
+                ReusableText(
+                    text = "Converter Pro",
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        lineHeight = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                    )
                 )
-            )
+                ReusableText(
+                    text = "Studio & Audio Composer",
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        color = Color.White.copy(alpha = 0.8f),
+                    )
+                )
+            }
             if (isNextButtonVisible) {
                 NextButton(onNextClick = onClick)
             }
